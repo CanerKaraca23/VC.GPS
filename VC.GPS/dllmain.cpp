@@ -1,7 +1,12 @@
+
 #include <Windows.h>
 #include <string>
-#include "..\common\common.h"
-#include "..\common\injector\injector.hpp"
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib")
+#include "..\\common\\common.h"
+#include "..\\common\\injector\\injector.hpp"
+
+
 
 void GetMemoryAddresses()
 {
@@ -170,6 +175,57 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	unsigned int color = 0;
 	int point = 0;
 
+	static bool bCheckedMenuMap = false;
+	static uintptr_t* ppMenuNew = NULL;
+
+	if (!bCheckedMenuMap)
+	{
+		HMODULE hMenuMap = GetModuleHandleA("MenuMap.asi");
+		if (hMenuMap)
+		{
+			MODULEINFO moduleInfo;
+			if (GetModuleInformation(GetCurrentProcess(), hMenuMap, &moduleInfo, sizeof(moduleInfo)))
+			{
+				uintptr_t startAddress = (uintptr_t)hMenuMap;
+				uintptr_t endAddress = startAddress + moduleInfo.SizeOfImage;
+
+				for (uintptr_t i = startAddress; i < endAddress - 10; i++)
+				{
+					// Pattern for: mov eax, dword ptr [MenuNew] | cmp dword ptr [eax+18h], 0 -> A1 ?? ?? ?? ?? 83 78 18 00
+					if (*(BYTE*)i == 0xA1 && *(BYTE*)(i+5) == 0x83 && *(BYTE*)(i+6) == 0x78 && *(BYTE*)(i+7) == 0x18 && *(BYTE*)(i+8) == 0x00)
+					{
+						ppMenuNew = (uintptr_t*)(*(uintptr_t*)(i + 1));
+						break;
+					}
+					// Alternate pattern: mov ecx, dword ptr [MenuNew] | cmp dword ptr [ecx+18h], 0 -> 8B 0D ?? ?? ?? ?? 83 79 18 00
+					if (*(BYTE*)i == 0x8B && *(BYTE*)(i+1) == 0x0D && *(BYTE*)(i+6) == 0x83 && *(BYTE*)(i+7) == 0x79 && *(BYTE*)(i+8) == 0x18 && *(BYTE*)(i+9) == 0x00)
+					{
+						ppMenuNew = (uintptr_t*)(*(uintptr_t*)(i + 2));
+						break;
+					}
+				}
+			}
+		}
+		bCheckedMenuMap = true;
+	}
+
+    if (ppMenuNew && *ppMenuNew)
+    {
+        int targetBlipIndex = *(int*)(*ppMenuNew + 0x18);
+        if (targetBlipIndex == 1)
+        {
+            CVector* targetBlipWorldPos = (CVector*)(*ppMenuNew + 0x1C);
+            // Light pink color
+            BYTEn(info->color, 0) = 255; // A
+            BYTEn(info->color, 1) = 193; // B
+            BYTEn(info->color, 2) = 182; // G
+            BYTEn(info->color, 3) = 255; // R
+
+            info->targetPoint = targetBlipWorldPos;
+            return info;
+        }
+    }
+
 	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[32]; blip++)
 	{
 		if (blip->m_bActive && blip->m_wBlipSprite == gCurrentGpsMode)
@@ -230,7 +286,6 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	}
 	return info;
 }
-
 void ProcessPathfind()
 {
 	DrawRadarMap();

@@ -1,0 +1,26 @@
+name: Build VC.GPS
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1.3
+
+    - name: Build
+      run: msbuild VC.GPS.sln /p:Configuration=Release /p:Platform=x86 /m
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: VC.GPS
+        path: Release/VC.GPS.asi
