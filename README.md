@@ -10,7 +10,7 @@ An intelligent GPS route navigation modification for **Grand Theft Auto: Vice Ci
   - 📍 If you place a custom waypoint on the interactive pause menu map, the GPS will immediately route to your custom waypoint instead of the mission objective.
   - 🎨 The route to your custom waypoint is drawn in a beautiful light pink color to easily differentiate it from standard mission blips.
   - 🗺️ The GPS path is drawn directly onto the interactive pause menu map using the mod's native API, so you can track your route without unpausing!
-  - 🎵 When you arrive at your destination, the custom waypoint is automatically deleted and a satisfying game checkpoint sound is played!
+  - 🛑 When you arrive at your destination, the custom waypoint is automatically deleted.
 
 ## ⚙️ Installation
 

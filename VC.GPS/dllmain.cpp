@@ -35,7 +35,6 @@ void GetMemoryAddresses()
 	gRadarRange = (float *)0x974BEC;
 	gRadarBlips = (RadarBlip *)0x7D7D38;
 	gCurrLevel = (eLevelName *)0xA0D9AC;
-	gAudio = (void *)0xA10B8A;
 	g_TimeMs = (unsigned int *)0x974B2C;
 	GetText = (wchar_t *(__thiscall *)(int, char *))0x584F30;
 	TheText = 0x94B220;
@@ -62,7 +61,7 @@ void OnMenuDrawing(float x, float y, short *text)
     BYTEn(color, 3) = 255; // A
 
     SetFontStyle(1);
-    SetScale(0.4f * ((float)*gScreenWidth / 640.0f), 0.6f * ((float)*gScreenHeight / 448.0f));
+    SetScale(0.2f * ((float)*gScreenWidth / 640.0f), 0.35f * ((float)*gScreenHeight / 448.0f));
     SetColor(&color);
     SetDropShadowPosition(1);
     SetPropOn();
@@ -72,7 +71,7 @@ void OnMenuDrawing(float x, float y, short *text)
 
     // Position it at the bottom left, slightly above the bottom edge (to avoid CLEO text)
     float textX = 10.0f * ((float)*gScreenWidth / 640.0f);
-    float textY = (float)*gScreenHeight - (35.0f * ((float)*gScreenHeight / 448.0f));
+    float textY = (float)*gScreenHeight - (20.0f * ((float)*gScreenHeight / 448.0f));
 
     PrintString(textX, textY, textUni);
 }
@@ -82,24 +81,11 @@ void Init()
 	GetMemoryAddresses();
 	injector::MakeCALL(0x4C5D4B, ProcessPathfind);
 	injector::MakeCALL(0x4C17C5, DrawPathLineMask);
-	injector::MakeCALL(0x4A4896, InitialiseGps);
+	injector::MakeCALL(0x4A4896, InitialiseRadar);
 	injector::MakeNOP(0x4C1D49, 5);
 
     pfDrawInMenu = (void(__cdecl *)(float, float, short *))injector::MakeCALL(0x49E3D9, OnMenuDrawing).get();
 }
-
-
-void InitialiseGps()
-{
-	InitialiseRadar();
-	gCurrentGpsMode = RADAR_SPRITE_NONE;
-	gGpsTextTimer = 0;
-	gGpsAudioTimer = 0;
-}
-
-
-
-
 
 #include <psapi.h>
 #pragma comment(lib, "psapi.lib")
