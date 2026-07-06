@@ -24,6 +24,7 @@ void GetMemoryAddresses()
 	DrawRadarMask = (void(__cdecl *)())0x4C1A20;
 	InitialiseRadar = (void(__cdecl *)())0x4C6200;
 	PlayFrontEndSound = (void(__thiscall *)(void *, unsigned short, unsigned int))0x5F9960;
+	PlayOneShot = (void(__thiscall *)(void*, int, unsigned short, float))0x5F9D20;
 	gPathfind = (void *)0x9B6E5C;
 	gRadarMapZShift = (float *)0x699530;
 	gSpriteVertices = (RwD3D9Vertex *)0x7D4040;
@@ -105,8 +106,8 @@ void DrawPathFindLineMenuMap()
                         DoPathSearch(gPathfind, PATHNODE_VEHICLE_PATH, playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, NULL, 999999.0f, -1);
 
                         BYTEn(gPathColor, 0) = 255;
-                        BYTEn(gPathColor, 1) = 193;
-                        BYTEn(gPathColor, 2) = 182;
+                        BYTEn(gPathColor, 1) = 77;
+                        BYTEn(gPathColor, 2) = 210;
                         BYTEn(gPathColor, 3) = 255;
                     }
                 }
@@ -142,7 +143,7 @@ void DrawPathFindLineMenuMap()
 		pMenuMap_GetScreenCoords(world2.x, world2.y, &screen2.x, &screen2.y);
 
         // Make the line thicker on the menu map
-		DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 3.0f, gPathColor);
+		DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 5.0f, gPathColor);
 	}
 }
 
@@ -211,13 +212,13 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     if (distSq < 225.0f)
                     {
                         *(int*)(*ppMenuNew + 0x18) = 0;
-                        PlayFrontEndSound(gAudio, 149, 0);
+                        PlayOneShot(gAudio, 0, 1058, 1.0f);
                     }
                     else
                     {
                         BYTEn(info->color, 0) = 255;
-                        BYTEn(info->color, 1) = 193;
-                        BYTEn(info->color, 2) = 182;
+                        BYTEn(info->color, 1) = 77;
+                        BYTEn(info->color, 2) = 210;
                         BYTEn(info->color, 3) = 255;
                         info->targetPoint = targetBlipWorldPos;
                         return info;
@@ -299,9 +300,34 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	return info;
 }
 
+void DrawTextOverlay()
+{
+    unsigned int color = 0;
+    BYTEn(color, 0) = 255; // R
+    BYTEn(color, 1) = 77;  // G
+    BYTEn(color, 2) = 210; // B
+    BYTEn(color, 3) = 255; // A
+
+    SetFontStyle(1);
+    SetScale(0.4f * ((float)*gScreenWidth / 640.0f), 0.6f * ((float)*gScreenHeight / 448.0f));
+    SetColor(&color);
+    SetDropShadowPosition(1);
+    SetPropOn();
+
+    short textUni[256];
+    AsciiToUnicode("VC GPS mod by CanerKaraca", textUni);
+
+    // Position it at the bottom left, slightly above the bottom edge (to avoid CLEO text)
+    float x = 10.0f * ((float)*gScreenWidth / 640.0f);
+    float y = (float)*gScreenHeight - (35.0f * ((float)*gScreenHeight / 448.0f));
+
+    PrintString(x, y, textUni);
+}
+
 void ProcessPathfind()
 {
 	DrawRadarMap();
+    DrawTextOverlay();
 	PathLineInfo info = {0};
 	CVehicle *playerCar = FindPlayerVehicle();
 	if (playerCar)
