@@ -153,7 +153,7 @@ void ProcessModeSwitch()
 		gGpsTextTimer = *g_TimeMs;
 		if (gCurrentGpsMode != RADAR_SPRITE_CENTRE && *g_TimeMs > gGpsAudioTimer + GPS_AUDIO_DELAY)
 		{
-			PlayFrontEndSound(gAudio, 149, 0);
+			PlayFrontEndSound(gAudio, 1058, 0);
 			gGpsAudioTimer = *g_TimeMs;
 		}
 	}
@@ -230,7 +230,7 @@ void DrawPathFindLineMenuMap()
 		pMenuMap_GetScreenCoords(world2.x, world2.y, &screen2.x, &screen2.y);
 
         // Make the line thicker on the menu map
-		DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 2.5f, gPathColor);
+		DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 3.0f, gPathColor);
 	}
 }
 
@@ -299,7 +299,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     if (distSq < 225.0f)
                     {
                         *(int*)(*ppMenuNew + 0x18) = 0;
-                        PlayFrontEndSound(gAudio, 149, 0);
+                        PlayFrontEndSound(gAudio, 1058, 0);
                     }
                     else
                     {
