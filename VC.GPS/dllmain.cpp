@@ -61,7 +61,7 @@ void OnMenuDrawing(float x, float y, short *text)
     BYTEn(color, 3) = 255; // A
 
     SetFontStyle(1);
-    SetScale(0.2f * ((float)*gScreenWidth / 640.0f), 0.35f * ((float)*gScreenHeight / 448.0f));
+    SetScale(0.25f * ((float)*gScreenWidth / 640.0f), 0.4f * ((float)*gScreenHeight / 448.0f));
     SetColor(&color);
     SetDropShadowPosition(1);
     SetPropOn();
@@ -70,7 +70,7 @@ void OnMenuDrawing(float x, float y, short *text)
     AsciiToUnicode("VC GPS mod by CanerKaraca", textUni);
 
     // Position it at the bottom left, slightly above the bottom edge (to avoid CLEO text)
-    float textX = 10.0f * ((float)*gScreenWidth / 640.0f);
+    float textX = 15.0f * ((float)*gScreenWidth / 640.0f);
     float textY = (float)*gScreenHeight - (30.0f * ((float)*gScreenHeight / 448.0f));
 
     PrintString(textX, textY, textUni);
