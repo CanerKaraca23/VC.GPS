@@ -103,7 +103,7 @@ class game_version_manager
         {
             if(this->IsUnknown())
             {
-                strcpy(buffer, "UNKNOWN GAME");
+                strcpy_s(buffer, 32, "UNKNOWN GAME");
                 return buffer;
             }
 
@@ -111,9 +111,9 @@ class game_version_manager
             const char* r = this->IsUS()? "US" : this->IsEU()? "EURO" : "UNK_REGION";
             const char* s = this->IsSteam()? "Steam" : "";
             if (this->IsIII() || this->IsVC() || this->IsSA())
-                sprintf(buffer, "GTA %s %d.%d %s%s", g, major, minor, r, s);
+                sprintf_s(buffer, 32, "GTA %s %d.%d %s%s", g, major, minor, r, s);
             else 
-                sprintf(buffer, "GTA %s %d.%d.%d.%d %s%s", g, major, minor, majorRevision, minorRevision, r, s);
+                sprintf_s(buffer, 32, "GTA %s %d.%d.%d.%d %s%s", g, major, minor, majorRevision, minorRevision, r, s);
             return buffer;
         }
 
@@ -132,7 +132,7 @@ class game_version_manager
         void RaiseIncompatibleVersion()
         {
             char buf[128], v[32];
-            sprintf(buf,
+            sprintf_s(buf, sizeof(buf),
                 "An incompatible exe version has been detected! (%s)\nContact the mod creator!",
                 GetVersionText(v)
                 );
