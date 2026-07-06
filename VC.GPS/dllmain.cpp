@@ -322,17 +322,17 @@ void ProcessPathfind()
 	CVehicle *playerCar = FindPlayerVehicle();
 	if (playerCar)
 	{
-		ProcessModeSwitch();
-		if (gCurrentGpsMode != RADAR_SPRITE_CENTRE)
-		{
-			GetPlaceInfo(&info);
+		// Force standard tracking mode (like GTA SA GPS Redux)
+		// This prevents "Page Up/Down" used for zooming the map from changing the tracked blip randomly.
+		gCurrentGpsMode = RADAR_SPRITE_NONE;
 
-			if (info.targetPoint)
-			{
-				DoPathSearch(gPathfind, PATHNODE_VEHICLE_PATH, playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, NULL, 999999.0f, -1);
-				if (gwPathNodesCount > 1)
-					DrawPathFindLine(gaPathPoints, gwPathNodesCount, LINE_WIDTH / (*gRadarRange), info.color);
-			}
+		GetPlaceInfo(&info);
+
+		if (info.targetPoint)
+		{
+			DoPathSearch(gPathfind, PATHNODE_VEHICLE_PATH, playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, NULL, 999999.0f, -1);
+			if (gwPathNodesCount > 1)
+				DrawPathFindLine(gaPathPoints, gwPathNodesCount, LINE_WIDTH / (*gRadarRange), info.color);
 		}
 	}
 }
