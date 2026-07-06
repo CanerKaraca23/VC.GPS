@@ -2,16 +2,17 @@ name: Build VC.GPS
 
 on:
   push:
-    branches: [ master, main ]
+    branches: main
   pull_request:
-    branches: [ master, main ]
+    branches: main
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v7
+    - name: Checkout Repository
+      uses: actions/checkout@v7
 
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v3
