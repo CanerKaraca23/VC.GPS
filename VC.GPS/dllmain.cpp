@@ -173,7 +173,7 @@ void DrawPathFindLineMenuMap()
 
 	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
 
-	for (unsigned int i = 0; i < (gwPathNodesCount - 1); i++)
+	for (int i = 0; i < (int)(gwPathNodesCount - 1); i++)
 	{
 		CVector2D world1, world2;
 		world1.x = gapPathNodes[i]->m_v2dPoint.x * 0.125f;
@@ -358,7 +358,7 @@ void ProcessPathfind()
 			if (gwPathNodesCount > 1)
 			{
 				RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
-				for (unsigned int i = 0; i < (gwPathNodesCount - 1); i++)
+				for (int i = 0; i < (int)(gwPathNodesCount - 1); i++)
 				{
 					CVector2D temp, temp2;
 					CVector2D radar1, radar2;
@@ -386,7 +386,6 @@ void ProcessPathfind()
 			gwPathNodesCount = 0;
 		}
 	}
-}
 }
 
 
