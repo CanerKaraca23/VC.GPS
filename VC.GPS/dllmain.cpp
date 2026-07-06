@@ -70,8 +70,8 @@ void OnMenuDrawing(float x, float y, short *text)
     AsciiToUnicode("VC GPS mod by CanerKaraca", textUni);
 
     // Position it at the bottom left, slightly above the bottom edge (to avoid CLEO text)
-    float textX = 15.0f * ((float)*gScreenWidth / 640.0f);
-    float textY = (float)*gScreenHeight - (30.0f * ((float)*gScreenHeight / 448.0f));
+    float textX = 12.0f * ((float)*gScreenWidth / 640.0f);
+    float textY = (float)*gScreenHeight - (25.0f * ((float)*gScreenHeight / 448.0f));
 
     PrintString(textX, textY, textUni);
 }
