@@ -180,7 +180,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 	if (!bCheckedMenuMap)
 	{
-		HMODULE hMenuMap = GetModuleHandleA("MenuMap.asi");
+		HMODULE hMenuMap = GetModuleHandleA("MenuMapVC.asi");
 		if (hMenuMap)
 		{
 			MODULEINFO moduleInfo;
@@ -189,18 +189,18 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				uintptr_t startAddress = (uintptr_t)hMenuMap;
 				uintptr_t endAddress = startAddress + moduleInfo.SizeOfImage;
 
-				for (uintptr_t i = startAddress; i < endAddress - 10; i++)
+								for (uintptr_t i = startAddress; i < endAddress - 30; i++)
 				{
-					// Pattern for: mov eax, dword ptr [MenuNew] | cmp dword ptr [eax+18h], 0 -> A1 ?? ?? ?? ?? 83 78 18 00
-					if (*(BYTE*)i == 0xA1 && *(BYTE*)(i+5) == 0x83 && *(BYTE*)(i+6) == 0x78 && *(BYTE*)(i+7) == 0x18 && *(BYTE*)(i+8) == 0x00)
+					// Pattern: A1 ?? ?? ?? ?? 83 EC ?? 85 C0 0F 84 ?? ?? ?? ?? 83 38 00 0F 84 ?? ?? ?? ?? 83 78 18 00
+					if (*(BYTE*)i == 0xA1 &&
+						*(BYTE*)(i+5) == 0x83 && *(BYTE*)(i+6) == 0xEC &&
+						*(BYTE*)(i+8) == 0x85 && *(BYTE*)(i+9) == 0xC0 &&
+						*(BYTE*)(i+10) == 0x0F && *(BYTE*)(i+11) == 0x84 &&
+						*(BYTE*)(i+16) == 0x83 && *(BYTE*)(i+17) == 0x38 && *(BYTE*)(i+18) == 0x00 &&
+						*(BYTE*)(i+19) == 0x0F && *(BYTE*)(i+20) == 0x84 &&
+						*(BYTE*)(i+25) == 0x83 && *(BYTE*)(i+26) == 0x78 && *(BYTE*)(i+27) == 0x18 && *(BYTE*)(i+28) == 0x00)
 					{
 						ppMenuNew = (uintptr_t*)(*(uintptr_t*)(i + 1));
-						break;
-					}
-					// Alternate pattern: mov ecx, dword ptr [MenuNew] | cmp dword ptr [ecx+18h], 0 -> 8B 0D ?? ?? ?? ?? 83 79 18 00
-					if (*(BYTE*)i == 0x8B && *(BYTE*)(i+1) == 0x0D && *(BYTE*)(i+6) == 0x83 && *(BYTE*)(i+7) == 0x79 && *(BYTE*)(i+8) == 0x18 && *(BYTE*)(i+9) == 0x00)
-					{
-						ppMenuNew = (uintptr_t*)(*(uintptr_t*)(i + 2));
 						break;
 					}
 				}
@@ -296,10 +296,11 @@ void ProcessPathfind()
 		ProcessModeSwitch();
 		if (gCurrentGpsMode != RADAR_SPRITE_CENTRE)
 		{
-			if (gCurrentGpsMode == RADAR_SPRITE_NONE && !IsPlayerOnAMission()) //shows path to racing blip when not on mission
+			GetPlaceInfo(&info);
+
+			if (gCurrentGpsMode == RADAR_SPRITE_NONE && !IsPlayerOnAMission() && !info.targetPoint) //shows path to racing blip when not on mission, or custom waypoint
 				return;
 
-			GetPlaceInfo(&info);
 			if (info.targetPoint)
 			{
 				DoPathSearch(gPathfind, PATHNODE_VEHICLE_PATH, playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, NULL, 999999.0f, -1);
