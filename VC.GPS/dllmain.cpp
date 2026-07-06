@@ -1,12 +1,7 @@
-
 #include <Windows.h>
 #include <string>
-#include <psapi.h>
-#pragma comment(lib, "psapi.lib")
-#include "..\\common\\common.h"
-#include "..\\common\\injector\\injector.hpp"
-
-
+#include "..\common\common.h"
+#include "..\common\injector\injector.hpp"
 
 void GetMemoryAddresses()
 {
@@ -142,7 +137,7 @@ void ProcessModeSwitch()
 				if (gCurrentGpsMode == RADAR_SPRITE_CENTRE || gCurrentGpsMode == RADAR_SPRITE_NONE)
 					break;
 
-				for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
+				for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[32]; blip++)
 				{
 					if (blip->m_wBlipSprite == gCurrentGpsMode && blip->m_bActive)
 					{
@@ -165,6 +160,40 @@ void ProcessModeSwitch()
 	PrintGpsText();
 }
 
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib")
+
+typedef void (*MenuMap_GetScreenCoords_t)(float, float, float*, float*);
+MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = NULL;
+
+void DrawPathFindLineMenuMap()
+{
+	if (!pMenuMap_GetScreenCoords || gwPathNodesCount <= 1) return;
+
+	unsigned int color = 0;
+	BYTEn(color, 0) = 255;
+	BYTEn(color, 1) = 193;
+	BYTEn(color, 2) = 182;
+	BYTEn(color, 3) = 255;
+
+	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
+
+	for (unsigned int i = 0; i < (gwPathNodesCount - 1); i++)
+	{
+		CVector2D world1, world2;
+		world1.x = gapPathNodes[i]->m_v2dPoint.x * 0.125f;
+		world1.y = gapPathNodes[i]->m_v2dPoint.y * 0.125f;
+		world2.x = gapPathNodes[i + 1]->m_v2dPoint.x * 0.125f;
+		world2.y = gapPathNodes[i + 1]->m_v2dPoint.y * 0.125f;
+
+		CVector2D screen1, screen2;
+		pMenuMap_GetScreenCoords(world1.x, world1.y, &screen1.x, &screen1.y);
+		pMenuMap_GetScreenCoords(world2.x, world2.y, &screen2.x, &screen2.y);
+
+		DrawLine(screen1, screen2, LINE_WIDTH / (*gRadarRange), color);
+	}
+}
+
 PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 {
 	CPlaceable *entity = NULL;
@@ -183,6 +212,13 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 		HMODULE hMenuMap = GetModuleHandleA("MenuMapVC.asi");
 		if (hMenuMap)
 		{
+			typedef void (*MenuMap_RegisterDrawCallback_t)(void (*)());
+			MenuMap_RegisterDrawCallback_t registerCb = (MenuMap_RegisterDrawCallback_t)GetProcAddress(hMenuMap, "MenuMap_RegisterDrawCallback");
+			if (registerCb) {
+				registerCb(DrawPathFindLineMenuMap);
+				pMenuMap_GetScreenCoords = (MenuMap_GetScreenCoords_t)GetProcAddress(hMenuMap, "MenuMap_GetScreenCoords");
+			}
+
 			MODULEINFO moduleInfo;
 			if (GetModuleInformation(GetCurrentProcess(), hMenuMap, &moduleInfo, sizeof(moduleInfo)))
 			{
@@ -227,10 +263,10 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     }
                     else
                     {
-                        BYTEn(info->color, 0) = 255; // A
-                        BYTEn(info->color, 1) = 193; // B
-                        BYTEn(info->color, 2) = 182; // G
-                        BYTEn(info->color, 3) = 255; // R
+                        BYTEn(info->color, 0) = 255;
+                        BYTEn(info->color, 1) = 193;
+                        BYTEn(info->color, 2) = 182;
+                        BYTEn(info->color, 3) = 255;
                         info->targetPoint = targetBlipWorldPos;
                         return info;
                     }
@@ -248,25 +284,21 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
 	{
-		// Automatic tracking: Prioritize mission destination (sprite 0)
-		// Or if there's an objective blip (which usually flashes or is active during a mission)
-		// We only track when IsPlayerOnAMission() is true, so any active blip with sprite 0 is likely the mission target.
-		// Ignore properties and non-mission blips.
 		if (blip->m_bActive && blip->m_wBlipSprite == RADAR_SPRITE_NONE)
 		{
 			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
 			{
 				switch (blip->m_dwBlipType)
 				{
-				case BLIP_CAR: // 1
+				case BLIP_CAR:
 					entity = VehicleGetAt(*gVehiclePool, blip->m_dwEntityHandle);
 					break;
-				case BLIP_PED: // 2
+				case BLIP_PED:
 					entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
 					if (entity && IS_PED_IN_CAR(entity))
 						entity = GET_PED_CAR(entity);
 					break;
-				case BLIP_OBJECT: // 3
+				case BLIP_OBJECT:
 					entity = ObjectGetAt(*gObjectPool, blip->m_dwEntityHandle);
 				}
 				if (entity)
@@ -283,6 +315,10 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				blipPos.y = blip->m_vecCurPos.y;
 				blipPos.z = blip->m_vecCurPos.z;
 			}
+
+			if (blipPos.x == 0.0f && blipPos.y == 0.0f)
+				continue;
+
 			newDistance = GetSquaredDistanceBetweenPoints(blipPos, *GetCamPos());
 			if (newDistance < distance)
 			{
@@ -310,6 +346,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	}
 	return info;
 }
+
 void ProcessPathfind()
 {
 	DrawRadarMap();
@@ -323,9 +360,33 @@ void ProcessPathfind()
 		{
 			DoPathSearch(gPathfind, PATHNODE_VEHICLE_PATH, playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, NULL, 999999.0f, -1);
 			if (gwPathNodesCount > 1)
-				DrawPathFindLine(gaPathPoints, gwPathNodesCount, LINE_WIDTH / (*gRadarRange), info.color);
+			{
+				RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
+				for (unsigned int i = 0; i < (gwPathNodesCount - 1); i++)
+				{
+					CVector2D temp, temp2;
+					CVector2D radar1, radar2;
+
+					temp.x = gapPathNodes[i]->m_v2dPoint.x * 0.125f;
+					temp.y = gapPathNodes[i]->m_v2dPoint.y * 0.125f;
+					temp2.x = gapPathNodes[i + 1]->m_v2dPoint.x * 0.125f;
+					temp2.y = gapPathNodes[i + 1]->m_v2dPoint.y * 0.125f;
+
+					TransformRealWorldPointToRadarSpace(radar1, temp);
+					TransformRealWorldPointToRadarSpace(radar2, temp2);
+
+					if (IsLineInsideRadar(radar1, radar2))
+					{
+						CVector2D screen1, screen2;
+						TransformRadarPointToScreenSpace(screen1, radar1);
+						TransformRadarPointToScreenSpace(screen2, radar2);
+						DrawLine(screen1, screen2, LINE_WIDTH / (*gRadarRange), info.color);
+					}
+				}
+			}
 		}
 	}
+}
 }
 
 
