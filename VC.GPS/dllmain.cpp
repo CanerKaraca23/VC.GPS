@@ -23,8 +23,6 @@ void GetMemoryAddresses()
 	DrawRadarMap = (void(__cdecl *)())0x4C17C0;
 	DrawRadarMask = (void(__cdecl *)())0x4C1A20;
 	InitialiseRadar = (void(__cdecl *)())0x4C6200;
-	PlayFrontEndSound = (void(__thiscall *)(void *, unsigned short, unsigned int))0x5F9960;
-	PlayOneShot = (void(__thiscall *)(void*, int, unsigned short, float))0x5F9D20;
 	gPathfind = (void *)0x9B6E5C;
 	gRadarMapZShift = (float *)0x699530;
 	gSpriteVertices = (RwD3D9Vertex *)0x7D4040;
@@ -49,6 +47,34 @@ void GetMemoryAddresses()
 	SetJustifyOn = (void(__cdecl *)()) 0x550150;
 	SetDropShadowPosition = (void(__cdecl *)(int)) 0x54FF20;
 	SetPropOn = (void(__cdecl *)()) 0x550020;
+    SetLeftJustifyOn = (void(__cdecl *)()) 0x5500A0; // Found via CLEO source matching SetLeftJustifyOn logic.
+}
+
+void OnMenuDrawing(float x, float y, short *text)
+{
+    // Call the original function first
+    if (pfDrawInMenu) pfDrawInMenu(x, y, text);
+
+    unsigned int color = 0;
+    BYTEn(color, 0) = 255; // R
+    BYTEn(color, 1) = 77;  // G
+    BYTEn(color, 2) = 210; // B
+    BYTEn(color, 3) = 255; // A
+
+    SetFontStyle(1);
+    SetScale(0.4f * ((float)*gScreenWidth / 640.0f), 0.6f * ((float)*gScreenHeight / 448.0f));
+    SetColor(&color);
+    SetDropShadowPosition(1);
+    SetPropOn();
+
+    short textUni[256];
+    AsciiToUnicode("VC GPS mod by CanerKaraca", textUni);
+
+    // Position it at the bottom left, slightly above the bottom edge (to avoid CLEO text)
+    float textX = 10.0f * ((float)*gScreenWidth / 640.0f);
+    float textY = (float)*gScreenHeight - (35.0f * ((float)*gScreenHeight / 448.0f));
+
+    PrintString(textX, textY, textUni);
 }
 
 void Init()
@@ -58,6 +84,8 @@ void Init()
 	injector::MakeCALL(0x4C17C5, DrawPathLineMask);
 	injector::MakeCALL(0x4A4896, InitialiseGps);
 	injector::MakeNOP(0x4C1D49, 5);
+
+    pfDrawInMenu = (void(__cdecl *)(float, float, short *))injector::MakeCALL(0x49E3D9, OnMenuDrawing).get();
 }
 
 
@@ -212,7 +240,6 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     if (distSq < 225.0f)
                     {
                         *(int*)(*ppMenuNew + 0x18) = 0;
-                        PlayOneShot(gAudio, 0, 1058, 1.0f);
                     }
                     else
                     {
@@ -300,34 +327,9 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	return info;
 }
 
-void DrawTextOverlay()
-{
-    unsigned int color = 0;
-    BYTEn(color, 0) = 255; // R
-    BYTEn(color, 1) = 77;  // G
-    BYTEn(color, 2) = 210; // B
-    BYTEn(color, 3) = 255; // A
-
-    SetFontStyle(1);
-    SetScale(0.4f * ((float)*gScreenWidth / 640.0f), 0.6f * ((float)*gScreenHeight / 448.0f));
-    SetColor(&color);
-    SetDropShadowPosition(1);
-    SetPropOn();
-
-    short textUni[256];
-    AsciiToUnicode("VC GPS mod by CanerKaraca", textUni);
-
-    // Position it at the bottom left, slightly above the bottom edge (to avoid CLEO text)
-    float x = 10.0f * ((float)*gScreenWidth / 640.0f);
-    float y = (float)*gScreenHeight - (35.0f * ((float)*gScreenHeight / 448.0f));
-
-    PrintString(x, y, textUni);
-}
-
 void ProcessPathfind()
 {
 	DrawRadarMap();
-    DrawTextOverlay();
 	PathLineInfo info = {0};
 	CVehicle *playerCar = FindPlayerVehicle();
 	if (playerCar)

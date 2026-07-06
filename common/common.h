@@ -308,8 +308,6 @@ void(__cdecl *ShowRadarTraceIII)(float, float, unsigned int, unsigned char, unsi
 void(__cdecl *DrawRadarMap)();
 void(__cdecl *DrawRadarMask)();
 void(__cdecl *InitialiseRadar)();
-void(__thiscall *PlayFrontEndSound)(void *, unsigned short, unsigned int);
-void(__thiscall *PlayOneShot)(void*, int, unsigned short, float);
 void DrawLine(CVector2D *, CVector2D *, float, unsigned int);
 void DrawPathLineMask();
 void RwIm2DSetNearScreenZ(float);
@@ -349,6 +347,9 @@ void(__cdecl *SetColor)             (unsigned int *color);
 void(__cdecl *SetJustifyOn)         ();
 void(__cdecl *SetDropShadowPosition)(int position);
 void(__cdecl *SetPropOn)            ();
+void(__cdecl *SetLeftJustifyOn)     ();
+
+void(*pfDrawInMenu)(float x, float y, short *text);
 /* */
 
 void TransformRadarPointToScreenSpace(CVector2D & a1, CVector2D const& a2)
