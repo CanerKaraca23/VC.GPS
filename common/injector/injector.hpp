@@ -2,7 +2,6 @@
  *  Injectors - Base Header
  *
  *  Copyright (C) 2012-2014 LINK/2012 <dma_2012@hotmail.com>
- *  Copyright (C) 2014 Deji <the_zone@hotmail.co.uk>
  *
  *  This software is provided 'as-is', without any express or implied
  *  warranty. In no event will the authors be held liable for any damages
@@ -290,10 +289,10 @@ inline bool UnprotectMemory(memory_pointer_tr addr, size_t size, DWORD& out_oldp
  */
 struct scoped_unprotect
 {
-    memory_pointer_raw  addr;
-    size_t              size;
-    DWORD               dwOldProtect;
-    bool                bUnprotected;
+    memory_pointer_raw  addr{};
+    size_t              size{0};
+    DWORD               dwOldProtect{0};
+    bool                bUnprotected{false};
 
     scoped_unprotect(memory_pointer_tr addr, size_t size)
     {
@@ -437,7 +436,7 @@ inline memory_pointer_raw GetAbsoluteOffset(int rel_value, memory_pointer_tr end
  *  GetRelativeOffset
  *      Gets relative offset based on absolute address @abs_value for instruction that ends at @end_of_instruction
  */
-inline int GetRelativeOffset(memory_pointer_tr abs_value, memory_pointer_tr end_of_instruction)
+inline uintptr_t GetRelativeOffset(memory_pointer_tr abs_value, memory_pointer_tr end_of_instruction)
 {
     return uintptr_t(abs_value.get<char>() - end_of_instruction.get<char>());
 }
@@ -458,6 +457,22 @@ inline memory_pointer_raw ReadRelativeOffset(memory_pointer_tr at, size_t sizeof
 }
 
 /*
+ *  ReadRelativeAddress
+ *      Reads relative address from address @at
+ */
+inline injector::memory_pointer_raw ReadRelativeAddress(memory_pointer_tr at, size_t sizeof_addr = 4, bool vp = true)
+{
+    uintptr_t base = (uintptr_t)GetModuleHandleA(NULL);
+    switch (sizeof_addr)
+    {
+        case 1: return (base + ReadMemory<int8_t>(at, vp));
+        case 2: return (base + ReadMemory<int16_t>(at, vp));
+        case 4: return (base + ReadMemory<int32_t>(at, vp));
+    }
+    return nullptr;
+}
+
+/*
  *  MakeRelativeOffset
  *      Writes relative offset into @at based on absolute destination @dest
  */
@@ -465,9 +480,9 @@ inline void MakeRelativeOffset(memory_pointer_tr at, memory_pointer_tr dest, siz
 {
     switch(sizeof_addr)
     {
-        case 1: WriteMemory<int8_t> (at, static_cast<int8_t> (GetRelativeOffset(dest, at+sizeof_addr)), vp);
-        case 2: WriteMemory<int16_t>(at, static_cast<int16_t>(GetRelativeOffset(dest, at+sizeof_addr)), vp);
-        case 4: WriteMemory<int32_t>(at, static_cast<int32_t>(GetRelativeOffset(dest, at+sizeof_addr)), vp);
+        case 1: return WriteMemory<int8_t> (at, static_cast<int8_t> (GetRelativeOffset(dest, at+sizeof_addr)), vp);
+        case 2: return WriteMemory<int16_t>(at, static_cast<int16_t>(GetRelativeOffset(dest, at+sizeof_addr)), vp);
+        case 4: return WriteMemory<int32_t>(at, static_cast<int32_t>(GetRelativeOffset(dest, at+sizeof_addr)), vp);
     }
 }
 
@@ -521,6 +536,29 @@ inline memory_pointer_raw MakeCALL(memory_pointer_tr at, memory_pointer_raw dest
     WriteMemory<uint8_t>(at, 0xE8, vp);
     MakeRelativeOffset(at+1, dest, 4, vp);
     return p;
+}
+
+/*
+ *  MakeAbsCALL64
+ *      Creates a 16 bytes CALL instruction at address @at that jumps into address @dest
+ */
+inline void MakeAbsCALL64(injector::memory_pointer_tr at, injector::memory_pointer_raw dest, bool vp = true)
+{
+    injector::WriteMemory<uint16_t>(at, 0x15FF, vp);
+    injector::WriteMemory<uint32_t>(at + sizeof(uint16_t), 2, vp);
+    injector::WriteMemory<uint16_t>(at + sizeof(uint16_t) + sizeof(uint32_t), 0x08EB, vp);
+    injector::WriteMemory<uint64_t>(at + sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint16_t), dest.as_int(), vp);
+}
+
+/*
+ *  MakeAbsJMP64
+ *      Creates a 14 bytes JMP instruction at address @at that jumps into address @dest
+ */
+inline void MakeAbsJMP64(injector::memory_pointer_tr at, injector::memory_pointer_raw dest, bool vp = true)
+{
+    injector::WriteMemory<uint16_t>(at, 0x25FF, vp);
+    injector::WriteMemory<uint32_t>(at + sizeof(uint16_t), 0, vp);
+    injector::WriteMemory<uint64_t>(at + sizeof(uint16_t) + sizeof(uint32_t), dest.as_int(), vp);
 }
 
 /*
@@ -585,7 +623,7 @@ inline void MakeRET(memory_pointer_tr at, uint16_t pop = 0, bool vp = true)
          template<class T>
          static T* get()
          {
-             return get().get<T>();
+             return get().template get<T>();
          }
 
     private:
@@ -667,75 +705,100 @@ inline bool game_version_manager::Detect()
     this->Clear();
 
     // Find NT header
-    uintptr_t          base     = (uintptr_t) GetModuleHandleA(NULL);
-    IMAGE_DOS_HEADER*  dos      = (IMAGE_DOS_HEADER*)(base);
-    IMAGE_NT_HEADERS*  nt       = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
+    auto base = (uintptr_t)GetModuleHandleA(NULL);
+
+    DWORD oldVP;
+
+    auto dos = (IMAGE_DOS_HEADER*)(base);
+    VirtualProtect(dos, sizeof(IMAGE_DOS_HEADER), PAGE_EXECUTE_READWRITE, &oldVP);
+
+    auto nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
+    VirtualProtect(nt, sizeof(IMAGE_NT_HEADERS), PAGE_EXECUTE_READWRITE, &oldVP);
+
             
     // Look for game and version thought the entry-point
     // Thanks to Silent for many of the entry point offsets
-    switch (base + nt->OptionalHeader.AddressOfEntryPoint + 0x400000 - (DWORD)GetModuleHandle(NULL))
+    switch (base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base))
     {
-        case 0x5C1E70:  // GTA III 1.0
+        // GTA III 1.0
+        case 0x5C1E70:
+        case 0x984E00:
             game = '3', major = 1, minor = 0, region = 0, steam = false;
             return true;
-            
-        case 0x5C2130:  // GTA III 1.1
+
+        // GTA III 1.1
+        case 0x5C2130:
             game = '3', major = 1, minor = 1, region = 0, steam = false;
             return true;
-            
-        case 0x5C6FD0:  // GTA III 1.1 (Cracked Steam Version)
-        case 0x9912ED:  // GTA III 1.1 (Encrypted Steam Version)
+
+        // GTA III 1.1 Steam
+        case 0x5C6FD0:
+        case 0x9912ED:
             game = '3', major = 1, minor = 1, region = 0, steam = true;
             return true;
-    
-        case 0x667BF0:  // GTA VC 1.0
+
+        // GTA VC 1.0
+        case 0x667BF0:
             game = 'V', major = 1, minor = 0, region = 0, steam = false;
             return true;
-            
-        case 0x667C40:  // GTA VC 1.1
+
+        // GTA VC 1.1
+        case 0x667C40:
             game = 'V', major = 1, minor = 1, region = 0, steam = false;
             return true;
 
-        case 0x666BA0:  // GTA VC 1.1 (Cracked Steam Version)
-        case 0xA402ED:  // GTA VC 1.1 (Encrypted Steam Version)
+        // GTA VC 1.1 Steam
+        case 0x666BA0:
+        case 0xA402ED:
             game = 'V', major = 1, minor = 1, region = 0, steam = true;
             return true;
-    
-        case 0x82457C:  // GTA SA 1.0 US Cracked
-        case 0x824570:  // GTA SA 1.0 US Compact
+
+        // GTA SA 1.0 US
+        case 0x82457C:
+        case 0x824570:
             game = 'S', major = 1, minor = 0, region = 'U', steam = false;
-            cracker = injector::ReadMemory<uint8_t>(raw_ptr(0x406A20), true) == 0xE9? 'H' : 0;
             return true;
 
-        case 0x8245BC:  // GTA SA 1.0 EU Cracked (??????)
-        case 0x8245B0:  // GTA SA 1.0 EU Cracked
+        // GTA SA 1.0 EU
+        case 0x8245BC:
+        case 0x8245B0:
             game = 'S', major = 1, minor = 0, region = 'E', steam = false;
-            cracker = injector::ReadMemory<uint8_t>(raw_ptr(0x406A20), true) == 0xE9? 'H' : 0;  // just to say 'securom'
             return true;
-            
-        case 0x8252FC:  // GTA SA 1.1 US Cracked
+
+        // GTA SA 1.1 US
+        case 0x8252FC:
             game = 'S', major = 1, minor = 1, region = 'U', steam = false;
             return true;
-            
-        case 0x82533C:  // GTA SA 1.1 EU Cracked
+
+        // GTA SA 1.1 EU
+        case 0x82533C:
             game = 'S', major = 1, minor = 1, region = 'E', steam = false;
             return true;
-            
-        case 0x85EC4A:  // GTA SA 3.0 (Cracked Steam Version)
-        case 0xD3C3DB:  // GTA SA 3.0 (Encrypted Steam Version)
+
+        // GTA SA 3.0 Steam
+        case 0x85EC4A:
+        case 0xD3C3DB:
             game = 'S', major = 3, minor = 0, region = 0, steam = true;
             return true;
 
-        case 0xC965AD:  // GTA IV 1.0.0.4 US
+        case 0xC965AD: // GTA IV 1.0.0.4 US
             game = 'I', major = 1, minor = 0, majorRevision = 0, minorRevision = 4, region = 'U', steam = false;
             return true;
 
-        case 0xD0D011:  // GTA IV 1.0.0.7 US
+        case 0xD0D011: // GTA IV 1.0.0.7 US
             game = 'I', major = 1, minor = 0, majorRevision = 0, minorRevision = 7, region = 'U', steam = false;
             return true;
 
-        case 0xD0AF06:  // GTA EFLC 1.1.2.0 US
+        case 0xCF529E: // GTA IV 1.0.0.8 US
+            game = 'I', major = 1, minor = 0, majorRevision = 0, minorRevision = 8, region = 'U', steam = false;
+            return true;
+
+        case 0xD0AF06: // GTA EFLC 1.1.2.0 US
             game = 'E', major = 1, minor = 1, majorRevision = 2, minorRevision = 0, region = 'U', steam = false;
+            return true;
+
+        case 0xCF4BAD: // GTA EFLC 1.1.3.0 US
+            game = 'E', major = 1, minor = 1, majorRevision = 3, minorRevision = 0, region = 'U', steam = false;
             return true;
 
         default:

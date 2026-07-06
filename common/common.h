@@ -283,10 +283,6 @@ CPathNode *gapPathNodes[MAX_POINTS];
 CPathNodeIII *gapPathNodes3[MAX_POINTS];
 short gwPathNodesCount;
 RwV2d gaPathPoints[MAX_POINTS];
-char gCurrentGpsMode;
-unsigned int gGpsTextTimer;
-unsigned int gGpsAudioTimer;
-unsigned int gGpsScrollTimer;
 CVector gBlipBestPos;
 
 CVehicle *(__cdecl *FindPlayerVehicle)();
@@ -308,7 +304,6 @@ void(__cdecl *ShowRadarTraceIII)(float, float, unsigned int, unsigned char, unsi
 void(__cdecl *DrawRadarMap)();
 void(__cdecl *DrawRadarMask)();
 void(__cdecl *InitialiseRadar)();
-void(__thiscall *PlayFrontEndSound)(void *, unsigned short, unsigned int);
 void DrawLine(CVector2D *, CVector2D *, float, unsigned int);
 void DrawPathLineMask();
 void RwIm2DSetNearScreenZ(float);
@@ -317,10 +312,7 @@ void DrawPathfind();
 void DrawPathFindLine(RwV2d *, unsigned int, float, unsigned int, CPathNode**);
 float GetSquaredDistanceBetweenPoints(CVector const&, CVector const&);
 bool IsLineInsideRadar(CVector2D const&, CVector2D const&);
-void ProcessModeSwitch();
 PathLineInfo *GetPlaceInfo(PathLineInfo *);
-void InitialiseGps();
-void DrawPlaceMarker(PathLineInfo *);
 void *gPathfind;
 float *gRadarMapZShift;
 RwD3D9Vertex *gSpriteVertices;
@@ -335,7 +327,6 @@ RadarBlip *gRadarBlips;
 RadarBlipIII *gRadarBlips3;
 eLevelName *gCurrLevel;
 unsigned int *g_TimeMs;
-void *gAudio;
 
 /* Text drawing - related things */
 int TheText;
@@ -348,6 +339,9 @@ void(__cdecl *SetColor)             (unsigned int *color);
 void(__cdecl *SetJustifyOn)         ();
 void(__cdecl *SetDropShadowPosition)(int position);
 void(__cdecl *SetPropOn)            ();
+void(__cdecl *SetLeftJustifyOn)     ();
+
+void(*pfDrawInMenu)(float x, float y, short *text);
 /* */
 
 void TransformRadarPointToScreenSpace(CVector2D & a1, CVector2D const& a2)
@@ -413,17 +407,11 @@ bool IsLineInsideRadar(CVector2D const&a, CVector2D const&b)
 	return a.x * a.x + a.y * a.y <= 0.8f || b.x * b.x + b.y * b.y <= 1.0f;
 }
 
-bool IsLineInsideRadarIII(CVector2D const&a, CVector2D const&b)
-{
-	return a.x * a.x + a.y * a.y <= 1.44 || b.x * b.x + b.y * b.y <= 1.44;
-}
-
 void DrawPathLineMask()
 {
 	DrawRadarMask();
 	unsigned int color;
 	CVector2D points[2];
-	if (gCurrentGpsMode != RADAR_SPRITE_CENTRE)
 	{
 		color = 0;
 		points[0].x = 1;
@@ -433,37 +421,6 @@ void DrawPathLineMask()
 		RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
 		TransformRadarPointToScreenSpace(points[0], points[0]);
 		TransformRadarPointToScreenSpace(points[1], points[1]);
-		SetSpriteVertices(points[1].x, (float)*gScreenHeight, points[1].x, 0.0, 0.0, (float)*gScreenHeight, 0.0, 0.0, &color,
-			&color, &color, &color);
-		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
-		SetSpriteVertices(points[0].x, points[0].y, points[0].x, 0.0, points[1].x, points[0].y, points[1].x, 0.0, &color,
-			&color, &color, &color);
-		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
-		SetSpriteVertices(points[0].x, (float)*gScreenHeight, points[0].x, points[1].y, points[1].x, (float)*gScreenHeight,
-			points[1].x, points[1].y, &color, &color, &color, &color);
-		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
-		SetSpriteVertices((float)*gScreenWidth, (float)*gScreenHeight, (float)*gScreenWidth, 0.0, points[0].x, (float)*gScreenHeight,
-			points[0].x, 0.0, &color, &color, &color, &color);
-		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
-	}
-	RwD3D9SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
-}
-
-void DrawPathLineMaskIII()
-{
-	DrawRadarMask();
-	unsigned int color;
-	CVector2D points[2];
-	if (gCurrentGpsMode != III_RADAR_SPRITE_CENTRE)
-	{
-		color = 0;
-		points[0].x = 1;
-		points[0].y = 1;
-		points[1].x = -1;
-		points[1].y = -1;
-		RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
-		TransformRadarPointToScreenSpaceIII(points[0], points[0]);
-		TransformRadarPointToScreenSpaceIII(points[1], points[1]);
 		SetSpriteVertices(points[1].x, (float)*gScreenHeight, points[1].x, 0.0, 0.0, (float)*gScreenHeight, 0.0, 0.0, &color,
 			&color, &color, &color);
 		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
@@ -530,24 +487,5 @@ void DrawPathFindLine(RwV2d *points, unsigned int numPoints, float width, unsign
 			DrawLine(points[i], points[i + 1], width, color);
 		}
 		else TransformRadarPointToScreenSpace(points[i + 1], points[i + 1]);
-	}
-}
-
-void DrawPathFindLineIII(RwV2d *points, unsigned int numPoints, float width, unsigned int color)
-{
-	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
-	for (unsigned int i = 0; i < (numPoints - 1); i++)
-	{
-		if (!(i & 1))
-			TransformRealWorldPointToRadarSpaceIII(points[i], gapPathNodes3[i]->m_v2dPoint);
-		TransformRealWorldPointToRadarSpaceIII(points[i + 1], gapPathNodes3[i + 1]->m_v2dPoint);
-		if (IsLineInsideRadarIII(points[i], points[i + 1]))
-		{
-			if (!(i & 1))
-				TransformRadarPointToScreenSpaceIII(points[i], points[i]);
-			TransformRadarPointToScreenSpaceIII(points[i + 1], points[i + 1]);
-			DrawLine(points[i], points[i + 1], width, color);
-		}
-		else TransformRadarPointToScreenSpaceIII(points[i + 1], points[i + 1]);
 	}
 }
