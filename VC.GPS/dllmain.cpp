@@ -209,7 +209,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 		bCheckedMenuMap = true;
 	}
 
-            if (ppMenuNew && *ppMenuNew)
+                if (ppMenuNew && *ppMenuNew)
     {
         int targetBlipIndex = *(int*)(*ppMenuNew + 0x18);
         if (targetBlipIndex == 1)
@@ -217,14 +217,33 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
             CVector* targetBlipWorldPos = (CVector*)(*ppMenuNew + 0x1C);
             if (targetBlipWorldPos->x != 0.0f || targetBlipWorldPos->y != 0.0f)
             {
-                // Light pink color
-                BYTEn(info->color, 0) = 255; // A
-                BYTEn(info->color, 1) = 193; // B
-                BYTEn(info->color, 2) = 182; // G
-                BYTEn(info->color, 3) = 255; // R
+                // Check distance to clear waypoint
+                CVector* camPos = GetCamPos(); // Using GetCamPos or FindPlayerVehicle?
+                // Wait, it's better to use player vehicle.
+                CVehicle* playerCar = FindPlayerVehicle();
+                if (playerCar)
+                {
+                    float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
+                    // 15.0f radius (225.0f squared)
+                    if (distSq < 225.0f)
+                    {
+                        // Clear the waypoint
+                        *(int*)(*ppMenuNew + 0x18) = 0;
+                        PlayFrontEndSound(gAudio, 149, 0); // Play audio to notify arrival?
+                        // If cleared, we shouldn't draw the line.
+                    }
+                    else
+                    {
+                        // Light pink color
+                        BYTEn(info->color, 0) = 255; // A
+                        BYTEn(info->color, 1) = 193; // B
+                        BYTEn(info->color, 2) = 182; // G
+                        BYTEn(info->color, 3) = 255; // R
 
-                info->targetPoint = targetBlipWorldPos;
-                return info;
+                        info->targetPoint = targetBlipWorldPos;
+                        return info;
+                    }
+                }
             }
         }
     }
