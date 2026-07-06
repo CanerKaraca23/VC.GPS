@@ -24,7 +24,6 @@ void GetMemoryAddresses()
 	DrawRadarMask = (void(__cdecl *)())0x4C1A20;
 	InitialiseRadar = (void(__cdecl *)())0x4C6200;
 	PlayFrontEndSound = (void(__thiscall *)(void *, unsigned short, unsigned int))0x5F9960;
-	PlayOneShotScriptObject = (void(__thiscall *)(void *, unsigned short, CVector))0x5F9D20;
 	gPathfind = (void *)0x9B6E5C;
 	gRadarMapZShift = (float *)0x699530;
 	gSpriteVertices = (RwD3D9Vertex *)0x7D4040;
@@ -69,97 +68,9 @@ void InitialiseGps()
 	gGpsAudioTimer = 0;
 }
 
-void PrintGpsText()
-{
-	if (*g_TimeMs < gGpsTextTimer + GPS_TEXT_TIME)
-	{
-		std::wstring text;
 
-		if (gCurrentGpsMode == RADAR_SPRITE_CENTRE)
-		{
-			text = L"GPS Mode: Disabled";
-		}
-		else
-		{
-			auto legendtext = GetText(TheText, (char*)BlipsGxtTableVC[gCurrentGpsMode]);
-			text = L"GPS Mode: ";
-			text += legendtext;
-		}
 
-		unsigned int color = 0xFFFFFFFF;
-		SetFontStyle(0);
-		SetScale(0.7f, 1.0f);
-		SetColor(&color);
-		SetJustifyOn();
-		SetDropShadowPosition(1);
-		SetPropOn();
-		CVector2D point;
-		point.x = -1.0;
-		point.y = -1.0;
-		TransformRadarPointToScreenSpace(point, point);
-		PrintString(point.x, point.y + 10.0f, (short*)text.c_str());
-		SetDropShadowPosition(0);
-		SetFontStyle(0);
-	}
-}
 
-void ProcessModeSwitch()
-{
-	unsigned char oldMode = gCurrentGpsMode;
-	if (*g_TimeMs > gGpsScrollTimer + GPS_KEY_SCROLL_DELAY)
-	{
-		uint8_t bKeyUp = 0;
-		bool bBlipFound = false;
-		if ((GetAsyncKeyState(GPS_KEY_UP) & 1)) //DPADUP: todo
-			bKeyUp = 1;
-		else if (GetAsyncKeyState(GPS_KEY_DOWN) & 1)
-			bKeyUp = 2;
-
-		if (bKeyUp)
-		{
-			do
-			{
-				bKeyUp == 1 ? gCurrentGpsMode++ : gCurrentGpsMode--;
-
-				if (bKeyUp == 1)
-				{
-					if (gCurrentGpsMode > RADAR_SPRITE_RADIO_WAVE)
-						gCurrentGpsMode = RADAR_SPRITE_NONE;
-				}
-				else
-				{
-					if (gCurrentGpsMode < RADAR_SPRITE_NONE)
-						gCurrentGpsMode = RADAR_SPRITE_RADIO_WAVE;
-				}
-
-				if (gCurrentGpsMode > RADAR_SPRITE_CENTRE && gCurrentGpsMode < RADAR_SPRITE_AVERY)
-					gCurrentGpsMode = bKeyUp == 1 ? RADAR_SPRITE_AVERY : RADAR_SPRITE_CENTRE;
-
-				if (gCurrentGpsMode == RADAR_SPRITE_CENTRE || gCurrentGpsMode == RADAR_SPRITE_NONE)
-					break;
-
-				for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[32]; blip++)
-				{
-					if (blip->m_wBlipSprite == gCurrentGpsMode && blip->m_bActive)
-					{
-						bBlipFound = true;
-					}
-				}
-			} while (!bBlipFound);
-			gGpsScrollTimer = *g_TimeMs;
-		}
-	}
-	if (oldMode != gCurrentGpsMode)
-	{
-		gGpsTextTimer = *g_TimeMs;
-		if (gCurrentGpsMode != RADAR_SPRITE_CENTRE && *g_TimeMs > gGpsAudioTimer + GPS_AUDIO_DELAY)
-		{
-			PlayOneShotScriptObject(gAudio, 1058, playerCar->m_sCoords.m_sMatrix.pos);
-			gGpsAudioTimer = *g_TimeMs;
-		}
-	}
-	PrintGpsText();
-}
 
 #include <psapi.h>
 #pragma comment(lib, "psapi.lib")
@@ -300,7 +211,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     if (distSq < 225.0f)
                     {
                         *(int*)(*ppMenuNew + 0x18) = 0;
-                        PlayOneShotScriptObject(gAudio, 1058, playerCar->m_sCoords.m_sMatrix.pos);
+                        PlayFrontEndSound(gAudio, 149, 0);
                     }
                     else
                     {
