@@ -309,6 +309,7 @@ void(__cdecl *DrawRadarMap)();
 void(__cdecl *DrawRadarMask)();
 void(__cdecl *InitialiseRadar)();
 void(__thiscall *PlayFrontEndSound)(void *, unsigned short, unsigned int);
+void(__thiscall *PlayOneShotScriptObject)(void *, unsigned short, CVector);
 void DrawLine(CVector2D *, CVector2D *, float, unsigned int);
 void DrawPathLineMask();
 void RwIm2DSetNearScreenZ(float);

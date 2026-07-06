@@ -24,6 +24,7 @@ void GetMemoryAddresses()
 	DrawRadarMask = (void(__cdecl *)())0x4C1A20;
 	InitialiseRadar = (void(__cdecl *)())0x4C6200;
 	PlayFrontEndSound = (void(__thiscall *)(void *, unsigned short, unsigned int))0x5F9960;
+	PlayOneShotScriptObject = (void(__thiscall *)(void *, unsigned short, CVector))0x5F9D20;
 	gPathfind = (void *)0x9B6E5C;
 	gRadarMapZShift = (float *)0x699530;
 	gSpriteVertices = (RwD3D9Vertex *)0x7D4040;
@@ -153,7 +154,7 @@ void ProcessModeSwitch()
 		gGpsTextTimer = *g_TimeMs;
 		if (gCurrentGpsMode != RADAR_SPRITE_CENTRE && *g_TimeMs > gGpsAudioTimer + GPS_AUDIO_DELAY)
 		{
-			PlayFrontEndSound(gAudio, 1058, 0);
+			PlayOneShotScriptObject(gAudio, 1058, playerCar->m_sCoords.m_sMatrix.pos);
 			gGpsAudioTimer = *g_TimeMs;
 		}
 	}
@@ -299,7 +300,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     if (distSq < 225.0f)
                     {
                         *(int*)(*ppMenuNew + 0x18) = 0;
-                        PlayFrontEndSound(gAudio, 1058, 0);
+                        PlayOneShotScriptObject(gAudio, 1058, playerCar->m_sCoords.m_sMatrix.pos);
                     }
                     else
                     {
