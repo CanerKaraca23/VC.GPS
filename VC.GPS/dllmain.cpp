@@ -189,7 +189,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				uintptr_t startAddress = (uintptr_t)hMenuMap;
 				uintptr_t endAddress = startAddress + moduleInfo.SizeOfImage;
 
-								for (uintptr_t i = startAddress; i < endAddress - 30; i++)
+				for (uintptr_t i = startAddress; i < endAddress - 30; i++)
 				{
 					// Pattern: A1 ?? ?? ?? ?? 83 EC ?? 85 C0 0F 84 ?? ?? ?? ?? 83 38 00 0F 84 ?? ?? ?? ?? 83 78 18 00
 					if (*(BYTE*)i == 0xA1 &&
@@ -209,22 +209,32 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 		bCheckedMenuMap = true;
 	}
 
-    if (ppMenuNew && *ppMenuNew)
+            if (ppMenuNew && *ppMenuNew)
     {
         int targetBlipIndex = *(int*)(*ppMenuNew + 0x18);
         if (targetBlipIndex == 1)
         {
             CVector* targetBlipWorldPos = (CVector*)(*ppMenuNew + 0x1C);
-            // Light pink color
-            BYTEn(info->color, 0) = 255; // A
-            BYTEn(info->color, 1) = 193; // B
-            BYTEn(info->color, 2) = 182; // G
-            BYTEn(info->color, 3) = 255; // R
+            if (targetBlipWorldPos->x != 0.0f || targetBlipWorldPos->y != 0.0f)
+            {
+                // Light pink color
+                BYTEn(info->color, 0) = 255; // A
+                BYTEn(info->color, 1) = 193; // B
+                BYTEn(info->color, 2) = 182; // G
+                BYTEn(info->color, 3) = 255; // R
 
-            info->targetPoint = targetBlipWorldPos;
-            return info;
+                info->targetPoint = targetBlipWorldPos;
+                return info;
+            }
         }
     }
+
+	if (gCurrentGpsMode == RADAR_SPRITE_NONE && !IsPlayerOnAMission()) //shows path to racing blip when not on mission
+	{
+		info->targetPoint = NULL;
+		info->color = 0;
+		return info;
+	}
 
 	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[32]; blip++)
 	{
@@ -297,9 +307,6 @@ void ProcessPathfind()
 		if (gCurrentGpsMode != RADAR_SPRITE_CENTRE)
 		{
 			GetPlaceInfo(&info);
-
-			if (gCurrentGpsMode == RADAR_SPRITE_NONE && !IsPlayerOnAMission() && !info.targetPoint) //shows path to racing blip when not on mission, or custom waypoint
-				return;
 
 			if (info.targetPoint)
 			{
