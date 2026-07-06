@@ -165,16 +165,11 @@ void ProcessModeSwitch()
 
 typedef void (*MenuMap_GetScreenCoords_t)(float, float, float*, float*);
 MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = NULL;
+unsigned int gPathColor = 0;
 
 void DrawPathFindLineMenuMap()
 {
 	if (!pMenuMap_GetScreenCoords || gwPathNodesCount <= 1) return;
-
-	unsigned int color = 0;
-	BYTEn(color, 0) = 255;
-	BYTEn(color, 1) = 193;
-	BYTEn(color, 2) = 182;
-	BYTEn(color, 3) = 255;
 
 	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
 
@@ -190,7 +185,7 @@ void DrawPathFindLineMenuMap()
 		pMenuMap_GetScreenCoords(world1.x, world1.y, &screen1.x, &screen1.y);
 		pMenuMap_GetScreenCoords(world2.x, world2.y, &screen2.x, &screen2.y);
 
-		DrawLine(screen1, screen2, LINE_WIDTH / (*gRadarRange), color);
+		DrawLine(screen1, screen2, LINE_WIDTH / (*gRadarRange), gPathColor);
 	}
 }
 
@@ -355,6 +350,7 @@ void ProcessPathfind()
 	if (playerCar)
 	{
 		GetPlaceInfo(&info);
+		gPathColor = info.color;
 
 		if (info.targetPoint)
 		{
@@ -384,6 +380,10 @@ void ProcessPathfind()
 					}
 				}
 			}
+		}
+		else
+		{
+			gwPathNodesCount = 0;
 		}
 	}
 }
