@@ -167,9 +167,53 @@ typedef void (*MenuMap_GetScreenCoords_t)(float, float, float*, float*);
 MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = NULL;
 unsigned int gPathColor = 0;
 
+bool bCheckedMenuMap = false;
+uintptr_t* ppMenuNew = NULL;
+CVector lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+
 void DrawPathFindLineMenuMap()
 {
-	if (!pMenuMap_GetScreenCoords || gwPathNodesCount <= 1) return;
+	if (!pMenuMap_GetScreenCoords) return;
+
+    if (ppMenuNew && *ppMenuNew)
+    {
+        int targetBlipIndex = *(int*)(*ppMenuNew + 0x18);
+        if (targetBlipIndex == 1)
+        {
+            CVector* targetBlipWorldPos = (CVector*)(*ppMenuNew + 0x1C);
+            if (targetBlipWorldPos->x != 0.0f || targetBlipWorldPos->y != 0.0f)
+            {
+                CVehicle *playerCar = FindPlayerVehicle();
+                if (playerCar)
+                {
+                    // If target changed, re-calculate path instantly
+                    if (targetBlipWorldPos->x != lastMenuTargetPos.x || targetBlipWorldPos->y != lastMenuTargetPos.y || targetBlipWorldPos->z != lastMenuTargetPos.z)
+                    {
+                        lastMenuTargetPos = *targetBlipWorldPos;
+                        DoPathSearch(gPathfind, PATHNODE_VEHICLE_PATH, playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, NULL, 999999.0f, -1);
+
+                        BYTEn(gPathColor, 0) = 255;
+                        BYTEn(gPathColor, 1) = 193;
+                        BYTEn(gPathColor, 2) = 182;
+                        BYTEn(gPathColor, 3) = 255;
+                    }
+                }
+            }
+            else
+            {
+                gwPathNodesCount = 0;
+                lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+            }
+        }
+        else
+        {
+            // Waypoint removed, clear path instantly
+            gwPathNodesCount = 0;
+            lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+        }
+    }
+
+	if (gwPathNodesCount <= 1) return;
 
 	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
 
@@ -185,7 +229,8 @@ void DrawPathFindLineMenuMap()
 		pMenuMap_GetScreenCoords(world1.x, world1.y, &screen1.x, &screen1.y);
 		pMenuMap_GetScreenCoords(world2.x, world2.y, &screen2.x, &screen2.y);
 
-		DrawLine(screen1, screen2, LINE_WIDTH / (*gRadarRange), gPathColor);
+        // Make the line thicker on the menu map
+		DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 2.5f, gPathColor);
 	}
 }
 
@@ -199,8 +244,8 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	unsigned int color = 0;
 	int point = 0;
 
-	static bool bCheckedMenuMap = false;
-	static uintptr_t* ppMenuNew = NULL;
+
+
 
 	if (!bCheckedMenuMap)
 	{
