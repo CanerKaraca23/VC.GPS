@@ -142,7 +142,7 @@ void ProcessModeSwitch()
 				if (gCurrentGpsMode == RADAR_SPRITE_CENTRE || gCurrentGpsMode == RADAR_SPRITE_NONE)
 					break;
 
-				for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[32]; blip++)
+				for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
 				{
 					if (blip->m_wBlipSprite == gCurrentGpsMode && blip->m_bActive)
 					{
@@ -191,7 +191,6 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 				for (uintptr_t i = startAddress; i < endAddress - 30; i++)
 				{
-					// Pattern: A1 ?? ?? ?? ?? 83 EC ?? 85 C0 0F 84 ?? ?? ?? ?? 83 38 00 0F 84 ?? ?? ?? ?? 83 78 18 00
 					if (*(BYTE*)i == 0xA1 &&
 						*(BYTE*)(i+5) == 0x83 && *(BYTE*)(i+6) == 0xEC &&
 						*(BYTE*)(i+8) == 0x85 && *(BYTE*)(i+9) == 0xC0 &&
@@ -209,7 +208,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 		bCheckedMenuMap = true;
 	}
 
-                if (ppMenuNew && *ppMenuNew)
+    if (ppMenuNew && *ppMenuNew)
     {
         int targetBlipIndex = *(int*)(*ppMenuNew + 0x18);
         if (targetBlipIndex == 1)
@@ -217,29 +216,21 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
             CVector* targetBlipWorldPos = (CVector*)(*ppMenuNew + 0x1C);
             if (targetBlipWorldPos->x != 0.0f || targetBlipWorldPos->y != 0.0f)
             {
-                // Check distance to clear waypoint
-                CVector* camPos = GetCamPos(); // Using GetCamPos or FindPlayerVehicle?
-                // Wait, it's better to use player vehicle.
                 CVehicle* playerCar = FindPlayerVehicle();
                 if (playerCar)
                 {
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
-                    // 15.0f radius (225.0f squared)
                     if (distSq < 225.0f)
                     {
-                        // Clear the waypoint
                         *(int*)(*ppMenuNew + 0x18) = 0;
-                        PlayFrontEndSound(gAudio, 149, 0); // Play audio to notify arrival?
-                        // If cleared, we shouldn't draw the line.
+                        PlayFrontEndSound(gAudio, 149, 0);
                     }
                     else
                     {
-                        // Light pink color
                         BYTEn(info->color, 0) = 255; // A
                         BYTEn(info->color, 1) = 193; // B
                         BYTEn(info->color, 2) = 182; // G
                         BYTEn(info->color, 3) = 255; // R
-
                         info->targetPoint = targetBlipWorldPos;
                         return info;
                     }
@@ -248,16 +239,20 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
         }
     }
 
-	if (gCurrentGpsMode == RADAR_SPRITE_NONE && !IsPlayerOnAMission()) //shows path to racing blip when not on mission
+	if (!IsPlayerOnAMission())
 	{
 		info->targetPoint = NULL;
 		info->color = 0;
 		return info;
 	}
 
-	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[32]; blip++)
+	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
 	{
-		if (blip->m_bActive && blip->m_wBlipSprite == gCurrentGpsMode)
+		// Automatic tracking: Prioritize mission destination (sprite 0)
+		// Or if there's an objective blip (which usually flashes or is active during a mission)
+		// We only track when IsPlayerOnAMission() is true, so any active blip with sprite 0 is likely the mission target.
+		// Ignore properties and non-mission blips.
+		if (blip->m_bActive && blip->m_wBlipSprite == RADAR_SPRITE_NONE)
 		{
 			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
 			{
@@ -322,10 +317,6 @@ void ProcessPathfind()
 	CVehicle *playerCar = FindPlayerVehicle();
 	if (playerCar)
 	{
-		// Force standard tracking mode (like GTA SA GPS Redux)
-		// This prevents "Page Up/Down" used for zooming the map from changing the tracked blip randomly.
-		gCurrentGpsMode = RADAR_SPRITE_NONE;
-
 		GetPlaceInfo(&info);
 
 		if (info.targetPoint)
