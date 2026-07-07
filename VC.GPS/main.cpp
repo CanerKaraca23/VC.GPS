@@ -207,7 +207,7 @@ void(__cdecl *SetDropShadowPosition)(int position);
 void(__cdecl *SetPropOn)            ();
 
 void(*pfDrawInMenu)(float x, float y, short *text);
-void(__thiscall *PlayFrontEndSound)(void *, unsigned short, unsigned int);
+void(__thiscall *PlayOneShot)(void *, int, unsigned short, float);
 
 
 void TransformRadarPointToScreenSpace(CVector2D & a1, CVector2D const& a2)
@@ -358,7 +358,7 @@ void GetMemoryAddresses()
 	SetColor = (void(__cdecl *)(unsigned int *)) 0x550170;
 	SetDropShadowPosition = (void(__cdecl *)(int)) 0x54FF20;
 	SetPropOn = (void(__cdecl *)()) 0x550020;
-	PlayFrontEndSound = (void(__thiscall *)(void *, unsigned short, unsigned int)) 0x5F9960;
+	PlayOneShot = (void(__thiscall *)(void *, int, unsigned short, float)) 0x5F9DA0;
 }
 
 void OnMenuDrawing(float x, float y, short *text)
@@ -534,17 +534,13 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
                     if (distSq < 225.0f)
                     {
-                        if (PlayFrontEndSound)
+                        if (PlayOneShot)
                         {
-                            // Test sound ID 1058 with different volumes
-                            PlayFrontEndSound((void*)0xA10B8A, 1058, 0);
-                            PlayFrontEndSound((void*)0xA10B8A, 1058, 100);
-                            PlayFrontEndSound((void*)0xA10B8A, 1058, 127);
+                            // audioEntity 0 is usually camera/global, which is safe
+                            PlayOneShot((void*)0xA10B8A, 0, 1058, 1.0f);
 
-                            // Test verified known sound ID (128) with different volumes
-                            PlayFrontEndSound((void*)0xA10B8A, 128, 0);
-                            PlayFrontEndSound((void*)0xA10B8A, 128, 100);
-                            PlayFrontEndSound((void*)0xA10B8A, 128, 127);
+                            // Also try with ID 128 as fallback
+                            PlayOneShot((void*)0xA10B8A, 0, 128, 1.0f);
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
