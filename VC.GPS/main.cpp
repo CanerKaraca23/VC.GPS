@@ -536,7 +536,8 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (PlayFrontEndSound)
                         {
-                            PlayFrontEndSound((void*)0xA10B8A, 1058, 0);
+                            PlayFrontEndSound((void*)0xA10B8A, 1058, 127);
+                            PlayFrontEndSound((void*)0xA10B8A, 128, 127); // Try a known menu beep ID as fallback
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
