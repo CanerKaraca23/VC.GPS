@@ -1,7 +1,345 @@
-#include <Windows.h>
+#include <windows.h>
+#include <psapi.h>
+#pragma comment(lib, "psapi.lib")
 #include <string>
-#include "..\common\common.h"
-#include "..\common\injector\injector.hpp"
+#include "injector/injector.hpp"
+#include <math.h>
+#include <stdint.h>
+
+
+#define MAX_POINTS 200
+
+#define rwRENDERSTATETEXTURERASTER 1
+#define rwPRIMTYPETRIFAN 5
+#define D3DRS_ALPHAFUNC 25
+#define D3DCMP_GREATER 5
+#define LINE_WIDTH 1400.0f
+
+enum eBlipsVC
+{
+    RADAR_SPRITE_NONE = 0,
+};
+
+
+
+#define IS_PED_IN_CAR(ped) (*(unsigned char *)((unsigned int)ped + 0x3AC))
+#define GET_PED_CAR(ped) (*(CVehicle **)((unsigned int)ped + 0x3A8))
+
+#define BYTEn(x, n)   (*((BYTE*)&(x)+n))
+
+
+
+
+
+
+struct RwV2d
+{
+	float x;
+	float y;
+};
+
+struct RwV3d
+{
+	float x;
+	float y;
+	float z;
+};
+
+struct RwD3D9Vertex
+{
+	float        x;
+	float        y;
+	float        z;
+	float        rhw;
+	unsigned int emissiveColor;
+	float        u;
+	float        v;
+};
+
+struct RwMatrix
+{
+	RwV3d right;
+	unsigned int flags;
+	RwV3d top;
+	char _pad0[4];
+	RwV3d at;
+	char _pad1[4];
+	RwV3d pos;
+	char _pad2[4];
+};
+
+class CMatrix
+{
+public:
+	RwMatrix       m_sMatrix;
+	class CMatrix *m_pMatrix;
+	unsigned char  m_bHaveRwMatrix;
+	char _pad[3];
+};
+
+class CPlaceable
+{
+public:
+	void *vmt;
+	CMatrix m_sCoords;
+};
+
+typedef CPlaceable CVehicle;
+typedef CPlaceable CPed;
+typedef CPlaceable CObject;
+typedef RwV3d CVector;
+typedef RwV2d CVector2D;
+
+enum class ePathNodeType
+{
+	PATHNODE_VEHICLE_PATH = 0,
+	PATHNODE_PED_PATH = 1
+};
+
+struct CVector2DShort
+{
+	signed short x;
+	signed short y;
+};
+
+struct CVectorShort
+{
+	signed short x;
+	signed short y;
+	signed short z;
+};
+
+struct CPathNode //size 0x14
+{
+	short unk1;
+	short unk2;
+	union {
+		CVector2DShort     m_v2dPoint;
+		CVectorShort       m_vPoint;
+	};
+	char unk3;
+	char unk4;
+	short nextPointIndex;
+	char unk5;
+	char unk6;
+	char flags;
+	char unk7;
+	char unk8;
+	char unk9;
+};
+
+
+enum class eBlipType
+{
+	BLIP_COORD = 0,
+	BLIP_CAR,
+	BLIP_PED,
+	BLIP_OBJECT
+};
+
+struct RadarBlip
+{
+	unsigned int   m_dwBlipColour;
+	unsigned int   m_dwBlipType;
+	unsigned int   m_dwEntityHandle;
+	CVector		   m_vecInitPos;
+	CVector        m_vecCurPos;
+	unsigned short m_wIndex;
+	unsigned char  m_bBlipBrightness;
+	unsigned char  m_bActive;
+	unsigned int   m_unk2;
+	float          m_f3dMarkerAnimState;
+	unsigned short m_wBlipScale;
+	unsigned short m_wBlipDisplay;
+	unsigned short m_wBlipSprite;
+	char _pad[2];
+};
+
+struct PathLineInfo
+{
+	union {
+		CVector *targetPoint;
+		CVector2D *targetPoint2d;
+	};
+	unsigned int color;
+};
+
+CPathNode *gapPathNodes[MAX_POINTS];
+short gwPathNodesCount;
+CVector gBlipBestPos;
+
+CVehicle *(__cdecl *FindPlayerVehicle)();
+bool (*IsPlayerOnAMission)() = (bool(*)()) 0x44FE30;
+void(__thiscall *DoPathSearch)(void *, unsigned char, CVector, int, CVector, CPathNode **, short *, short, CVehicle *, float *, float, int);
+float(__cdecl *RwIm2DGetNearScreenZ)();
+void(__cdecl *RwRenderStateSet)(unsigned int, unsigned int);
+int(__cdecl *RwD3D9SetRenderState)(unsigned int, unsigned int);
+void(__cdecl *SetSpriteVertices)(float, float, float, float, float, float, float, float, unsigned int *, unsigned int *, unsigned int *, unsigned int *);
+void(__cdecl *RwIm2DRenderPrimitive)(unsigned int, RwD3D9Vertex *, unsigned int);
+CVehicle *(__thiscall *VehicleGetAt)(void *, unsigned int);
+CPed *(__thiscall *PedGetAt)(void *, unsigned int);
+CObject *(__thiscall *ObjectGetAt)(void *, unsigned int);
+unsigned int(__cdecl *GetRadarTraceColour)(unsigned int, unsigned int);
+void(__cdecl *ShowRadarTrace)(float, float, unsigned int, unsigned char, unsigned char, unsigned char, unsigned char, unsigned __int8);
+void(__cdecl *DrawRadarMap)();
+void(__cdecl *DrawRadarMask)();
+void(__cdecl *InitialiseRadar)();
+void DrawLine(CVector2D *, CVector2D *, float, unsigned int);
+void DrawPathLineMask();
+void RwIm2DSetNearScreenZ(float);
+void ProcessPathfind();
+float GetSquaredDistanceBetweenPoints(CVector const&, CVector const&);
+bool IsLineInsideRadar(CVector2D const&, CVector2D const&);
+PathLineInfo *GetPlaceInfo(PathLineInfo *);
+void *gPathfind;
+float *gRadarMapZShift;
+RwD3D9Vertex *gSpriteVertices;
+int *gScreenWidth;
+int *gScreenHeight;
+void **gVehiclePool;
+void **gPedPool;
+void **gObjectPool;
+unsigned int *gRwEngine;
+float *gRadarRange;
+RadarBlip *gRadarBlips;
+unsigned int *g_TimeMs;
+
+/* Text drawing - related things */
+int TheText;
+wchar_t*(__thiscall* GetText) 		(int, char *);
+void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
+void(__cdecl *PrintString)          (float x, float y, short *text);
+void(__cdecl *SetFontStyle)         (int style);
+void(__cdecl *SetScale)             (float w, float h);
+void(__cdecl *SetColor)             (unsigned int *color);
+void(__cdecl *SetJustifyOn)         ();
+void(__cdecl *SetDropShadowPosition)(int position);
+void(__cdecl *SetPropOn)            ();
+void(__cdecl *SetLeftJustifyOn)     ();
+
+void(*pfDrawInMenu)(float x, float y, short *text);
+/* */
+
+void TransformRadarPointToScreenSpace(CVector2D & a1, CVector2D const& a2)
+{
+	if (*(BYTE*)0x869665)
+	{
+		a1.x = (*(float*)0x68FD0C * *(float*)0x869670 * a2.x + *(float*)0x68FD10 * *(float*)0x869670 + *(float*)0x869674)
+			* (float)*gScreenWidth
+			* **(float**)0x4C1B1A;
+		a1.y = (*(float*)0x869678 - *(float*)0x68FD1C * *(float*)0x869670 - *(float*)0x68FD18 * *(float*)0x869670 * a2.y)
+			* (float)*gScreenHeight
+			* **(float**)0x4C1B46;
+	}
+	else
+	{
+		float v1 = (float)*gScreenWidth * **(float**)0x4C1B1A * *(float*)0x68FD24;
+		a1.x = a2.x * v1 * *(float*)0x68FD28 + v1 * *(float*)0x68FD28 + *(float*)0x68FD2C;
+		a1.y = *(float*)0x68FD30 * (float)*gScreenHeight * **(float**)0x4C1B46 * *(float*)0x68FD28
+			+ (float)*gScreenHeight
+			- *(float*)0x68FD34 * (float)*gScreenHeight * **(float**)0x4C1B46
+			- a2.y * *(float*)0x68FD30 * (float)*gScreenHeight * **(float**)0x4C1B46 * *(float*)0x68FD28;
+	}
+}
+
+void TransformRealWorldPointToRadarSpace(CVector2D & a1, CVector2D const& a2)
+{
+	float v9 = *(float *)0x68FD40 / *(float *)0x974BEC;
+	float v10 = (a2.x - *(float *)0x704734) * v9;
+	float v11 = (a2.y - *(float *)0x704738) * v9;
+	a1.x = *(float *)0x70483C * v11 + *(float *)0x704840 * v10;
+	a1.y = *(float *)0x704840 * v11 - *(float *)0x70483C * v10;
+}
+
+float GetDistance(CVector *v1, CVector *v2)
+{
+	CVector v3;
+	v3.x = v2->x - v1->x;
+	v3.y = v2->y - v1->y;
+	v3.z = v2->z - v1->z;
+	return (float)sqrt(v3.x * v3.x + v3.y * v3.y + v3.z * v3.z);
+}
+
+CVector * GetCamPos()
+{
+	return (CVector *)(0x7E4688 + 0x7D8);
+}
+
+void RwIm2DSetNearScreenZ(float z)
+{
+	*(float *)(*gRwEngine + 0x18) = z;
+}
+
+float GetSquaredDistanceBetweenPoints(CVector const&a, CVector const&b)
+{
+	float dx = b.x - a.x;
+	float dy = b.y - a.y;
+	float dz = b.z - a.z;
+	return dz * dz + dy * dy + dx * dx;
+}
+
+bool IsLineInsideRadar(CVector2D const&a, CVector2D const&b)
+{
+	return a.x * a.x + a.y * a.y <= 0.8f || b.x * b.x + b.y * b.y <= 1.0f;
+}
+
+void DrawPathLineMask()
+{
+	DrawRadarMask();
+	unsigned int color;
+	CVector2D points[2];
+	{
+		color = 0;
+		points[0].x = 1;
+		points[0].y = 1;
+		points[1].x = -1;
+		points[1].y = -1;
+		RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
+		TransformRadarPointToScreenSpace(points[0], points[0]);
+		TransformRadarPointToScreenSpace(points[1], points[1]);
+		SetSpriteVertices(points[1].x, (float)*gScreenHeight, points[1].x, 0.0, 0.0, (float)*gScreenHeight, 0.0, 0.0, &color,
+			&color, &color, &color);
+		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
+		SetSpriteVertices(points[0].x, points[0].y, points[0].x, 0.0, points[1].x, points[0].y, points[1].x, 0.0, &color,
+			&color, &color, &color);
+		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
+		SetSpriteVertices(points[0].x, (float)*gScreenHeight, points[0].x, points[1].y, points[1].x, (float)*gScreenHeight,
+			points[1].x, points[1].y, &color, &color, &color, &color);
+		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
+		SetSpriteVertices((float)*gScreenWidth, (float)*gScreenHeight, (float)*gScreenWidth, 0.0, points[0].x, (float)*gScreenHeight,
+			points[0].x, 0.0, &color, &color, &color, &color);
+		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
+	}
+	RwD3D9SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
+}
+
+void DrawLine(CVector2D const&a, CVector2D const&b, float width, unsigned int color)
+{
+	CVector2D point[4], shift[2], dir;
+	width /= 2.0;
+	dir.x = b.x - a.x;
+	dir.y = b.y - a.y;
+	float angle = (float)atan2(dir.y, dir.x);
+	shift[0].x = (float)(cos(angle - 1.5707963f) * width);
+	shift[0].y = (float)(sin(angle - 1.5707963f) * width);
+	shift[1].x = (float)(cos(angle + 1.5707963f) * width);
+	shift[1].y = (float)(sin(angle + 1.5707963f) * width);
+	point[0].x = a.x + shift[1].x;
+	point[0].y = a.y + shift[1].y;
+	point[1].x = b.x + shift[1].x;
+	point[1].y = b.y + shift[1].y;
+	point[2].x = a.x + shift[0].x;
+	point[2].y = a.y + shift[0].y;
+	point[3].x = b.x + shift[0].x;
+	point[3].y = b.y + shift[0].y;
+	float oldZ = RwIm2DGetNearScreenZ();
+	RwIm2DSetNearScreenZ(oldZ + *gRadarMapZShift);
+	SetSpriteVertices(point[0].x, point[0].y, point[1].x, point[1].y, point[2].x, point[2].y, point[3].x, point[3].y, &color,
+		&color, &color, &color);
+	RwIm2DSetNearScreenZ(oldZ);
+	RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
+}
+
 
 void GetMemoryAddresses()
 {
@@ -34,7 +372,6 @@ void GetMemoryAddresses()
 	gRwEngine = (unsigned int *)0x7870C0; 
 	gRadarRange = (float *)0x974BEC;
 	gRadarBlips = (RadarBlip *)0x7D7D38;
-	gCurrLevel = (eLevelName *)0xA0D9AC;
 	g_TimeMs = (unsigned int *)0x974B2C;
 	GetText = (wchar_t *(__thiscall *)(int, char *))0x584F30;
 	TheText = 0x94B220;
@@ -87,15 +424,13 @@ void Init()
     pfDrawInMenu = (void(__cdecl *)(float, float, short *))injector::MakeCALL(0x49E3D9, OnMenuDrawing).get();
 }
 
-#include <psapi.h>
-#pragma comment(lib, "psapi.lib")
 
-typedef void (*MenuMap_GetScreenCoords_t)(float, float, float*, float*);
-MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = NULL;
+using MenuMap_GetScreenCoords_t = void (*)(float, float, float*, float*);
+MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = nullptr;
 unsigned int gPathColor = 0;
 
 bool bCheckedMenuMap = false;
-uintptr_t* ppMenuNew = NULL;
+uintptr_t* ppMenuNew = nullptr;
 CVector lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
 
 void DrawPathFindLineMenuMap()
@@ -117,7 +452,7 @@ void DrawPathFindLineMenuMap()
                     if (targetBlipWorldPos->x != lastMenuTargetPos.x || targetBlipWorldPos->y != lastMenuTargetPos.y || targetBlipWorldPos->z != lastMenuTargetPos.z)
                     {
                         lastMenuTargetPos = *targetBlipWorldPos;
-                        DoPathSearch(gPathfind, PATHNODE_VEHICLE_PATH, playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, NULL, 999999.0f, -1);
+                        DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
 
                         BYTEn(gPathColor, 0) = 255;
                         BYTEn(gPathColor, 1) = 77;
@@ -142,7 +477,7 @@ void DrawPathFindLineMenuMap()
 
 	if (gwPathNodesCount <= 1) return;
 
-	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
+	RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
 
 	for (int i = 0; i < (int)(gwPathNodesCount - 1); i++)
 	{
@@ -163,8 +498,8 @@ void DrawPathFindLineMenuMap()
 
 PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 {
-	CPlaceable *entity = NULL;
-	RadarBlip *bestBlip = NULL;
+	CPlaceable *entity = nullptr;
+	RadarBlip *bestBlip = nullptr;
 	CVector blipPos = { 0.0f, 0.0f, 0.0f };
 	float distance = 9999800001.99f;
 	float newDistance = 0.0f;
@@ -179,7 +514,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 		HMODULE hMenuMap = GetModuleHandleA("MenuMapVC.asi");
 		if (hMenuMap)
 		{
-			typedef void (*MenuMap_RegisterDrawCallback_t)(void (*)());
+			using MenuMap_RegisterDrawCallback_t = void (*)(void (*)());
 			MenuMap_RegisterDrawCallback_t registerCb = (MenuMap_RegisterDrawCallback_t)GetProcAddress(hMenuMap, "MenuMap_RegisterDrawCallback");
 			if (registerCb) {
 				registerCb(DrawPathFindLineMenuMap);
@@ -243,7 +578,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 	if (!IsPlayerOnAMission())
 	{
-		info->targetPoint = NULL;
+		info->targetPoint = nullptr;
 		info->color = 0;
 		return info;
 	}
@@ -256,15 +591,15 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 			{
 				switch (blip->m_dwBlipType)
 				{
-				case BLIP_CAR:
+				case static_cast<int>(eBlipType::BLIP_CAR):
 					entity = VehicleGetAt(*gVehiclePool, blip->m_dwEntityHandle);
 					break;
-				case BLIP_PED:
+				case static_cast<int>(eBlipType::BLIP_PED):
 					entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
 					if (entity && IS_PED_IN_CAR(entity))
 						entity = GET_PED_CAR(entity);
 					break;
-				case BLIP_OBJECT:
+				case static_cast<int>(eBlipType::BLIP_OBJECT):
 					entity = ObjectGetAt(*gObjectPool, blip->m_dwEntityHandle);
 				}
 				if (entity)
@@ -307,7 +642,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	}
 	else
 	{
-		info->targetPoint = NULL;
+		info->targetPoint = nullptr;
 		info->color = 0;
 	}
 	return info;
@@ -325,10 +660,10 @@ void ProcessPathfind()
 
 		if (info.targetPoint)
 		{
-			DoPathSearch(gPathfind, PATHNODE_VEHICLE_PATH, playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, NULL, 999999.0f, -1);
+			DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
 			if (gwPathNodesCount > 1)
 			{
-				RwRenderStateSet(rwRENDERSTATETEXTURERASTER, NULL);
+				RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
 				for (int i = 0; i < (int)(gwPathNodesCount - 1); i++)
 				{
 					CVector2D temp, temp2;
