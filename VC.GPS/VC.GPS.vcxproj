@@ -63,4 +63,4 @@
   </ItemDefinitionGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-<ItemGroup><ClCompile Include="main.cpp" /><ClCompile Include="Config.cpp" /><ClCompile Include="Logger.cpp" /></ItemGroup><ItemGroup><ClInclude Include="Config.hpp" /><ClInclude Include="Logger.hpp" /><ClInclude Include="injector\injector.hpp" /><ClInclude Include="injector\gvm\gvm.hpp" /><ClInclude Include="injector\gvm\translator.hpp" /></ItemGroup></Project>
+<ItemGroup><ClCompile Include="main.cpp" /><ClCompile Include="Config.cpp" /></ItemGroup><ItemGroup><ClInclude Include="Config.hpp" /><ClInclude Include="injector\injector.hpp" /><ClInclude Include="injector\gvm\gvm.hpp" /><ClInclude Include="injector\gvm\translator.hpp" /></ItemGroup></Project>

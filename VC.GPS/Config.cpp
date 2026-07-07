@@ -3,11 +3,9 @@
 #include <sstream>
 
 float Config::lineWidth = 2.5f;
-bool Config::trackMovingTargets = false;
 float Config::removeRadius = 15.0f;
 bool Config::customColorsEnabled = false;
 RGBA Config::waypointColor = {255, 77, 210, 255};
-bool Config::enableLog = false;
 std::string Config::iniPath = "";
 
 void Config::Init(const std::string& iniFilePath) {
@@ -21,13 +19,11 @@ void Config::Init(const std::string& iniFilePath) {
 
 void Config::GenerateDefaultConfig() {
     WritePrivateProfileStringA("Navigation", "lineWidth", "2.5", iniPath.c_str());
-    WritePrivateProfileStringA("Navigation", "trackMovingTargets", "0", iniPath.c_str());
     WritePrivateProfileStringA("Navigation", "removeRadius", "15.0", iniPath.c_str());
 
     WritePrivateProfileStringA("Custom Colors", "enabled", "0", iniPath.c_str());
     WritePrivateProfileStringA("Custom Colors", "waypoint", "255, 77, 210, 255", iniPath.c_str());
 
-    WritePrivateProfileStringA("Misc", "enableLog", "0", iniPath.c_str());
 }
 
 RGBA Config::ParseColor(const std::string& colorStr, RGBA defaultColor) {
@@ -60,7 +56,6 @@ void Config::LoadConfig() {
     GetPrivateProfileStringA("Navigation", "lineWidth", "2.5", buffer, sizeof(buffer), iniPath.c_str());
     try { lineWidth = std::stof(buffer); } catch (...) { lineWidth = 2.5f; }
 
-    trackMovingTargets = GetPrivateProfileIntA("Navigation", "trackMovingTargets", 0, iniPath.c_str()) != 0;
 
     GetPrivateProfileStringA("Navigation", "removeRadius", "15.0", buffer, sizeof(buffer), iniPath.c_str());
     try { removeRadius = std::stof(buffer); } catch (...) { removeRadius = 15.0f; }
@@ -70,6 +65,4 @@ void Config::LoadConfig() {
     GetPrivateProfileStringA("Custom Colors", "waypoint", "255, 77, 210, 255", buffer, sizeof(buffer), iniPath.c_str());
     waypointColor = ParseColor(buffer, {255, 77, 210, 255}
 );
-
-    enableLog = GetPrivateProfileIntA("Misc", "enableLog", 0, iniPath.c_str()) != 0;
 }

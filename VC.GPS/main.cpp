@@ -6,7 +6,6 @@
 #include <math.h>
 #include <stdint.h>
 #include "Config.hpp"
-#include "Logger.hpp"
 
 
 constexpr int MAX_POINTS = 200;
@@ -402,9 +401,6 @@ void Init(HMODULE hModule)
 	std::string dir = path.substr(0, path.find_last_of("\\/")) + "\\";
 
 	Config::Init(dir + "VC.GPS.ini");
-	Logger::Init(dir + "VC.GPS.log", Config::enableLog);
-
-	Logger::Log("VC.GPS Initializing...");
 
 	GetMemoryAddresses();
 	injector::MakeCALL(0x4C5D4B, ProcessPathfind);
@@ -413,8 +409,6 @@ void Init(HMODULE hModule)
 	injector::MakeNOP(0x4C1D49, 5);
 
 	pfDrawInMenu = (void(__cdecl *)(float, float, short *))injector::MakeCALL(0x49E3D9, OnMenuDrawing).get();
-
-	Logger::Log("VC.GPS Initialized Successfully!");
 }
 
 
@@ -598,12 +592,10 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				switch (static_cast<eBlipType>(blip->m_dwBlipType))
 				{
 				case eBlipType::BLIP_CAR:
-				    if (!Config::trackMovingTargets) continue;
 					if (gVehiclePool && *gVehiclePool)
 						entity = VehicleGetAt(*gVehiclePool, blip->m_dwEntityHandle);
 					break;
 				case eBlipType::BLIP_PED:
-				    if (!Config::trackMovingTargets) continue;
 					if (gPedPool && *gPedPool)
 					{
 						entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
