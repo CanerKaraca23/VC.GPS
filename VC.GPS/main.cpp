@@ -418,13 +418,13 @@ void DrawPathFindLineMenuMap()
 
 	if (info.targetPoint && playerCar)
 	{
+		gPathColor = info.color;
 		// If target or player position changed, re-calculate path instantly
 		if (info.targetPoint->x != lastMenuTargetPos.x || info.targetPoint->y != lastMenuTargetPos.y || info.targetPoint->z != lastMenuTargetPos.z ||
 			playerCar->m_sCoords.m_sMatrix.pos.x != lastMenuPlayerPos.x || playerCar->m_sCoords.m_sMatrix.pos.y != lastMenuPlayerPos.y || playerCar->m_sCoords.m_sMatrix.pos.z != lastMenuPlayerPos.z)
 		{
 			lastMenuTargetPos = *info.targetPoint;
 			lastMenuPlayerPos = playerCar->m_sCoords.m_sMatrix.pos;
-			gPathColor = info.color;
 			DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
 		}
 	}
