@@ -15,10 +15,6 @@
 #define D3DCMP_GREATER 5
 #define LINE_WIDTH 1400.0f
 
-enum class eBlipsVC
-{
-    RADAR_SPRITE_NONE = 0,
-};
 
 
 
@@ -202,6 +198,15 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
+void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
+void(__cdecl *PrintString)          (float x, float y, short *text);
+void(__cdecl *SetFontStyle)         (int style);
+void(__cdecl *SetScale)             (float w, float h);
+void(__cdecl *SetColor)             (unsigned int *color);
+void(__cdecl *SetDropShadowPosition)(int position);
+void(__cdecl *SetPropOn)            ();
+
+void(*pfDrawInMenu)(float x, float y, short *text);
 
 
 void TransformRadarPointToScreenSpace(CVector2D & a1, CVector2D const& a2)
@@ -345,8 +350,41 @@ void GetMemoryAddresses()
 	gRwEngine = (unsigned int *)0x7870C0;
 	gRadarRange = (float *)0x974BEC;
 	gRadarBlips = (RadarBlip *)0x7D7D38;
+	AsciiToUnicode = (void(__cdecl *)(const char *, short *)) 0x552500;
+	PrintString = (void(__cdecl *)(float, float, short *)) 0x551040;
+	SetFontStyle = (void(__cdecl *)(int)) 0x54FFE0;
+	SetScale = (void(__cdecl *)(float, float)) 0x550230;
+	SetColor = (void(__cdecl *)(unsigned int *)) 0x550170;
+	SetDropShadowPosition = (void(__cdecl *)(int)) 0x54FF20;
+	SetPropOn = (void(__cdecl *)()) 0x550020;
 }
 
+void OnMenuDrawing(float x, float y, short *text)
+{
+    // Call the original function first
+    if (pfDrawInMenu) pfDrawInMenu(x, y, text);
+
+    unsigned int color = 0;
+    BYTEn(color, 0) = 255; // R
+    BYTEn(color, 1) = 77;  // G
+    BYTEn(color, 2) = 210; // B
+    BYTEn(color, 3) = 255; // A
+
+    SetFontStyle(1);
+    SetScale(0.25f * ((float)*gScreenWidth / 640.0f), 0.4f * ((float)*gScreenHeight / 448.0f));
+    SetColor(&color);
+    SetDropShadowPosition(1);
+    SetPropOn();
+
+    short textUni[256];
+    AsciiToUnicode("VC GPS mod by CanerKaraca", textUni);
+
+    // Position it at the bottom left, slightly above the bottom edge (to avoid CLEO text)
+    float textX = 12.0f * ((float)*gScreenWidth / 640.0f);
+    float textY = (float)*gScreenHeight - (28.0f * ((float)*gScreenHeight / 448.0f));
+
+    PrintString(textX, textY, textUni);
+}
 
 void Init()
 {
@@ -356,6 +394,7 @@ void Init()
 	injector::MakeCALL(0x4A4896, InitialiseRadar);
 	injector::MakeNOP(0x4C1D49, 5);
 
+    pfDrawInMenu = (void(__cdecl *)(float, float, short *))injector::MakeCALL(0x49E3D9, OnMenuDrawing).get();
 }
 
 
@@ -519,7 +558,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
 	{
-		if (blip->m_bActive && blip->m_wBlipSprite == static_cast<unsigned short>(eBlipsVC::RADAR_SPRITE_NONE))
+		if (blip->m_bActive && blip->m_wBlipSprite == 0) // RADAR_SPRITE_NONE
 		{
 			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
 			{
