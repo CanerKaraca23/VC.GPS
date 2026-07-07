@@ -24,4 +24,4 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: VC.GPS
-        path: bin/Release/VC.GPS.asi
+        path: Release/VC.GPS.asi
