@@ -132,23 +132,25 @@ enum class eBlipType
 	BLIP_OBJECT
 };
 
+#pragma pack(push, 4)
 struct RadarBlip
 {
-	unsigned int   m_dwBlipColour;
-	unsigned int   m_dwBlipType;
-	unsigned int   m_dwEntityHandle;
-	CVector		   m_vecInitPos;
-	CVector        m_vecCurPos;
-	unsigned short m_wIndex;
-	unsigned char  m_bBlipBrightness;
-	unsigned char  m_bActive;
-	unsigned int   m_unk2;
-	float          m_f3dMarkerAnimState;
-	unsigned short m_wBlipScale;
-	unsigned short m_wBlipDisplay;
-	unsigned short m_wBlipSprite;
-	char _pad[2];
+	unsigned int m_nColour;
+	unsigned int m_nBlipType;
+	int m_nEntityHandle;
+	CVector m_vec2DPos;
+	CVector m_vecPos;
+	unsigned short m_nBlipIndex;
+	bool m_bDim;
+	char m_bInUse;
+	bool m_bShortRange;
+	char m_bUnk;
+	float m_fSphereRadius;
+	unsigned short m_nBlipSize;
+	unsigned short m_nBlipDisplay;
+	unsigned short m_nRadarSprite;
 };
+#pragma pack(pop)
 
 struct PathLineInfo
 {
@@ -551,28 +553,28 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
 	{
-		if (blip->m_bActive && blip->m_wBlipSprite == RADAR_SPRITE_NONE)
+		if (blip->m_bInUse && blip->m_nRadarSprite == RADAR_SPRITE_NONE)
 		{
-			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
+			if (blip->m_nBlipType > 0 && blip->m_nBlipType < 4)
 			{
 				CPlaceable *entity = nullptr;
-				switch (static_cast<eBlipType>(blip->m_dwBlipType))
+				switch (static_cast<eBlipType>(blip->m_nBlipType))
 				{
 				case eBlipType::BLIP_CAR:
 					if (gVehiclePool && *gVehiclePool && VehicleGetAt)
-						entity = VehicleGetAt(*gVehiclePool, blip->m_dwEntityHandle);
+						entity = VehicleGetAt(*gVehiclePool, blip->m_nEntityHandle);
 					break;
 				case eBlipType::BLIP_PED:
 					if (gPedPool && *gPedPool && PedGetAt)
 					{
-						entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
+						entity = PedGetAt(*gPedPool, blip->m_nEntityHandle);
 						if (entity && IS_PED_IN_CAR(entity))
 							entity = GET_PED_CAR(entity);
 					}
 					break;
 				case eBlipType::BLIP_OBJECT:
 					if (gObjectPool && *gObjectPool && ObjectGetAt)
-						entity = ObjectGetAt(*gObjectPool, blip->m_dwEntityHandle);
+						entity = ObjectGetAt(*gObjectPool, blip->m_nEntityHandle);
 					break;
 				}
 				if (entity)
@@ -585,9 +587,9 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 			}
 			else
 			{
-				blipPos.x = blip->m_vecCurPos.x;
-				blipPos.y = blip->m_vecCurPos.y;
-				blipPos.z = blip->m_vecCurPos.z;
+				blipPos.x = blip->m_vecPos.x;
+				blipPos.y = blip->m_vecPos.y;
+				blipPos.z = blip->m_vecPos.z;
 			}
 
 			if (blipPos.x == 0.0f && blipPos.y == 0.0f)
@@ -606,7 +608,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	}
 	if (bestBlip)
 	{
-		color = GetRadarTraceColour(bestBlip->m_dwBlipColour, bestBlip->m_bBlipBrightness);
+		color = GetRadarTraceColour(bestBlip->m_nColour, bestBlip->m_bDim ? 0 : 1);
 		unsigned int r = (color >> 24) & 0xFF;
 		unsigned int g = (color >> 16) & 0xFF;
 		unsigned int b = (color >> 8) & 0xFF;
