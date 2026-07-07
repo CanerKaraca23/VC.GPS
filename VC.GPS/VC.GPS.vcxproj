@@ -15,6 +15,7 @@
   <PropertyGroup>
     <ProjectGuid>{7A69852D-68C5-4D65-8A5A-ABD05D09C966}</ProjectGuid>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
     <TargetExt>.asi</TargetExt>
