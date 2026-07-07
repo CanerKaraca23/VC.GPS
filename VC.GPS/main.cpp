@@ -3,8 +3,8 @@
 #pragma comment(lib, "psapi.lib")
 #include <string>
 #include "injector/injector.hpp"
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 
 
 constexpr int MAX_POINTS = 200;
@@ -14,14 +14,13 @@ constexpr unsigned int rwPRIMTYPETRIFAN = 5;
 constexpr unsigned int D3DRS_ALPHAFUNC = 25;
 constexpr unsigned int D3DCMP_GREATER = 5;
 constexpr float LINE_WIDTH = 1400.0f;
+constexpr unsigned short RADAR_SPRITE_NONE = 0;
 
 
 
 
 #define IS_PED_IN_CAR(ped) (*(unsigned char *)((unsigned int)ped + 0x3AC))
 #define GET_PED_CAR(ped) (*(CVehicle **)((unsigned int)ped + 0x3A8))
-
-#define BYTEn(x, n)   (*((BYTE*)&(x)+n))
 
 
 
@@ -243,7 +242,7 @@ void TransformRealWorldPointToRadarSpace(CVector2D & a1, CVector2D const& a2)
 
 CVector * GetCamPos()
 {
-	return (CVector *)(0x7E4688 + 0x7D8);
+	return reinterpret_cast<CVector*>(0x7E4E60);
 }
 
 void RwIm2DSetNearScreenZ(float z)
@@ -364,11 +363,7 @@ void OnMenuDrawing(float x, float y, short *text)
     // Call the original function first
     if (pfDrawInMenu) pfDrawInMenu(x, y, text);
 
-    unsigned int color = 0;
-    BYTEn(color, 0) = 255; // R
-    BYTEn(color, 1) = 77;  // G
-    BYTEn(color, 2) = 210; // B
-    BYTEn(color, 3) = 255; // A
+    unsigned int color = 0xFFD24DFF;
 
     SetFontStyle(1);
     SetScale(0.25f * ((float)*gScreenWidth / 640.0f), 0.4f * ((float)*gScreenHeight / 448.0f));
@@ -427,10 +422,7 @@ void DrawPathFindLineMenuMap()
                         lastMenuTargetPos = *targetBlipWorldPos;
                         DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
 
-                        BYTEn(gPathColor, 0) = 255;
-                        BYTEn(gPathColor, 1) = 77;
-                        BYTEn(gPathColor, 2) = 210;
-                        BYTEn(gPathColor, 3) = 255;
+                        gPathColor = 0xFFD24DFF;
                     }
                 }
             }
@@ -473,7 +465,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 {
 	RadarBlip *bestBlip = nullptr;
 	CVector blipPos = { 0.0f, 0.0f, 0.0f };
-	float distance = 9999800001.99f;
+	float distance = INFINITY;
 	float newDistance = 0.0f;
 	unsigned int color = 0;
 
@@ -498,19 +490,25 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				uintptr_t startAddress = (uintptr_t)hMenuMap;
 				uintptr_t endAddress = startAddress + moduleInfo.SizeOfImage;
 
-				for (uintptr_t i = startAddress; i < endAddress - 30; i++)
+				__try
 				{
-					if (*(BYTE*)i == 0xA1 &&
-						*(BYTE*)(i+5) == 0x83 && *(BYTE*)(i+6) == 0xEC &&
-						*(BYTE*)(i+8) == 0x85 && *(BYTE*)(i+9) == 0xC0 &&
-						*(BYTE*)(i+10) == 0x0F && *(BYTE*)(i+11) == 0x84 &&
-						*(BYTE*)(i+16) == 0x83 && *(BYTE*)(i+17) == 0x38 && *(BYTE*)(i+18) == 0x00 &&
-						*(BYTE*)(i+19) == 0x0F && *(BYTE*)(i+20) == 0x84 &&
-						*(BYTE*)(i+25) == 0x83 && *(BYTE*)(i+26) == 0x78 && *(BYTE*)(i+27) == 0x18 && *(BYTE*)(i+28) == 0x00)
+					for (uintptr_t i = startAddress; i < endAddress - 30; i++)
 					{
-						ppMenuNew = (uintptr_t*)(*(uintptr_t*)(i + 1));
-						break;
+						if (*(BYTE*)i == 0xA1 &&
+							*(BYTE*)(i+5) == 0x83 && *(BYTE*)(i+6) == 0xEC &&
+							*(BYTE*)(i+8) == 0x85 && *(BYTE*)(i+9) == 0xC0 &&
+							*(BYTE*)(i+10) == 0x0F && *(BYTE*)(i+11) == 0x84 &&
+							*(BYTE*)(i+16) == 0x83 && *(BYTE*)(i+17) == 0x38 && *(BYTE*)(i+18) == 0x00 &&
+							*(BYTE*)(i+19) == 0x0F && *(BYTE*)(i+20) == 0x84 &&
+							*(BYTE*)(i+25) == 0x83 && *(BYTE*)(i+26) == 0x78 && *(BYTE*)(i+27) == 0x18 && *(BYTE*)(i+28) == 0x00)
+						{
+							ppMenuNew = (uintptr_t*)(*(uintptr_t*)(i + 1));
+							break;
+						}
 					}
+				}
+				__except (EXCEPTION_EXECUTE_HANDLER)
+				{
 				}
 			}
 		}
@@ -535,10 +533,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     }
                     else
                     {
-                        BYTEn(info->color, 0) = 255;
-                        BYTEn(info->color, 1) = 77;
-                        BYTEn(info->color, 2) = 210;
-                        BYTEn(info->color, 3) = 255;
+                        info->color = 0xFFD24DFF;
                         info->targetPoint = targetBlipWorldPos;
                         return info;
                     }
@@ -556,7 +551,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
 	{
-		if (blip->m_bActive && blip->m_wBlipSprite == 0) // RADAR_SPRITE_NONE
+		if (blip->m_bActive && blip->m_wBlipSprite == RADAR_SPRITE_NONE)
 		{
 			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
 			{
@@ -612,10 +607,10 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	if (bestBlip)
 	{
 		color = GetRadarTraceColour(bestBlip->m_dwBlipColour, bestBlip->m_bBlipBrightness);
-		BYTEn(info->color, 0) = BYTEn(color, 3);
-		BYTEn(info->color, 1) = BYTEn(color, 2);
-		BYTEn(info->color, 2) = BYTEn(color, 1);
-		BYTEn(info->color, 3) = 255;
+		unsigned int r = (color >> 24) & 0xFF;
+		unsigned int g = (color >> 16) & 0xFF;
+		unsigned int b = (color >> 8) & 0xFF;
+		info->color = r | (g << 8) | (b << 16) | (255 << 24);
 		info->targetPoint = &gBlipBestPos;
 	}
 	else
