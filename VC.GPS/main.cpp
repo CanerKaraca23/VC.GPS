@@ -333,8 +333,8 @@ void GetMemoryAddresses()
 	SetSpriteVertices = (void(__cdecl *)(float, float, float, float, float, float, float, float, unsigned int *, unsigned int *, unsigned int *, unsigned int *))0x5781C0;
 	RwIm2DRenderPrimitive = (void(__cdecl *)(unsigned int, RwD3D9Vertex *, unsigned int))0x649C10;
 	GetRadarTraceColour = (unsigned int(__cdecl *)(unsigned int, unsigned int))0x4C3050;
-	VehicleGetAt = (CVehicle *(__thiscall *)(void *, unsigned int))0x451C70;
-	PedGetAt = (CPed *(__thiscall *)(void *, unsigned int))0x451CB0;
+	VehicleGetAt = (CVehicle *(__thiscall *)(void *, unsigned int))0x451CB0;
+	PedGetAt = (CPed *(__thiscall *)(void *, unsigned int))0x451C70;
 	ObjectGetAt = (CObject *(__thiscall *)(void *, unsigned int))0x451C30;
 	DrawRadarMap = (void(__cdecl *)())0x4C17C0;
 	DrawRadarMask = (void(__cdecl *)())0x4C1A20;
@@ -564,11 +564,11 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				switch (static_cast<eBlipType>(blip->m_dwBlipType))
 				{
 				case eBlipType::BLIP_CAR:
-					if (gVehiclePool && *gVehiclePool)
+					if (gVehiclePool && *gVehiclePool && VehicleGetAt)
 						entity = VehicleGetAt(*gVehiclePool, blip->m_dwEntityHandle);
 					break;
 				case eBlipType::BLIP_PED:
-					if (gPedPool && *gPedPool)
+					if (gPedPool && *gPedPool && PedGetAt)
 					{
 						entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
 						if (entity && IS_PED_IN_CAR(entity))
@@ -576,7 +576,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 					}
 					break;
 				case eBlipType::BLIP_OBJECT:
-					if (gObjectPool && *gObjectPool)
+					if (gObjectPool && *gObjectPool && ObjectGetAt)
 						entity = ObjectGetAt(*gObjectPool, blip->m_dwEntityHandle);
 					break;
 				}
