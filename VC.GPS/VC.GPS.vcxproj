@@ -12,8 +12,6 @@
     </ProjectConfiguration>
   </ItemGroup>
 
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-
   <PropertyGroup>
     <ProjectGuid>{7A69852D-68C5-4D65-8A5A-ABD05D09C966}</ProjectGuid>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -25,6 +23,7 @@
     <WholeProgramOptimization Condition="'$(Configuration)'=='Release'">true</WholeProgramOptimization>
   </PropertyGroup>
 
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
 
   <ItemDefinitionGroup>
