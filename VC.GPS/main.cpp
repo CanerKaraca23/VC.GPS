@@ -202,15 +202,7 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
-void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
-void(__cdecl *PrintString)          (float x, float y, short *text);
-void(__cdecl *SetFontStyle)         (int style);
-void(__cdecl *SetScale)             (float w, float h);
-void(__cdecl *SetColor)             (unsigned int *color);
-void(__cdecl *SetDropShadowPosition)(int position);
-void(__cdecl *SetPropOn)            ();
 
-void(*pfDrawInMenu)(float x, float y, short *text);
 
 void TransformRadarPointToScreenSpace(CVector2D & a1, CVector2D const& a2)
 {
@@ -300,14 +292,14 @@ void DrawPathLineMask()
 void DrawLine(CVector2D const&a, CVector2D const&b, float width, unsigned int color)
 {
 	CVector2D point[4], shift[2], dir;
-	width /= 2.0;
+		width /= 2.0f;
 	dir.x = b.x - a.x;
 	dir.y = b.y - a.y;
-	float angle = (float)atan2(dir.y, dir.x);
-	shift[0].x = (float)(cos(angle - 1.5707963f) * width);
-	shift[0].y = (float)(sin(angle - 1.5707963f) * width);
-	shift[1].x = (float)(cos(angle + 1.5707963f) * width);
-	shift[1].y = (float)(sin(angle + 1.5707963f) * width);
+		float angle = atan2f(dir.y, dir.x);
+		shift[0].x = cosf(angle - 1.5707963f) * width;
+		shift[0].y = sinf(angle - 1.5707963f) * width;
+		shift[1].x = cosf(angle + 1.5707963f) * width;
+		shift[1].y = sinf(angle + 1.5707963f) * width;
 	point[0].x = a.x + shift[1].x;
 	point[0].y = a.y + shift[1].y;
 	point[1].x = b.x + shift[1].x;
@@ -327,17 +319,17 @@ void DrawLine(CVector2D const&a, CVector2D const&b, float width, unsigned int co
 
 void GetMemoryAddresses()
 {
-	FindPlayerVehicle = (CVehicle *(__cdecl *)())0x4BC1E0; 
+	FindPlayerVehicle = (CVehicle *(__cdecl *)())0x4BC1E0;
 	IsPlayerOnAMission = (bool(*)()) 0x44FE30;
-	DoPathSearch = (void(__thiscall *)(void *, unsigned char, CVector, int, CVector, CPathNode **, short *, short, CVehicle *, float *, float, int))0x439070; 
+	DoPathSearch = (void(__thiscall *)(void *, unsigned char, CVector, int, CVector, CPathNode **, short *, short, CVehicle *, float *, float, int))0x439070;
 	RwIm2DGetNearScreenZ = (float(__cdecl *)())0x649B80;
 	RwRenderStateSet = (void(__cdecl *)(unsigned int, unsigned int))0x649BA0;
 	RwD3D9SetRenderState = (int(__cdecl *)(unsigned int, unsigned int))0x6582A0;
 	SetSpriteVertices = (void(__cdecl *)(float, float, float, float, float, float, float, float, unsigned int *, unsigned int *, unsigned int *, unsigned int *))0x5781C0;
 	RwIm2DRenderPrimitive = (void(__cdecl *)(unsigned int, RwD3D9Vertex *, unsigned int))0x649C10;
 	GetRadarTraceColour = (unsigned int(__cdecl *)(unsigned int, unsigned int))0x4C3050;
-	VehicleGetAt = (CPed *(__thiscall *)(void *, unsigned int))0x451C70;
-	PedGetAt = (CVehicle *(__thiscall *)(void *, unsigned int))0x451CB0;
+	VehicleGetAt = (CVehicle *(__thiscall *)(void *, unsigned int))0x451C70;
+	PedGetAt = (CPed *(__thiscall *)(void *, unsigned int))0x451CB0;
 	ObjectGetAt = (CObject *(__thiscall *)(void *, unsigned int))0x451C30;
 	DrawRadarMap = (void(__cdecl *)())0x4C17C0;
 	DrawRadarMask = (void(__cdecl *)())0x4C1A20;
@@ -350,44 +342,11 @@ void GetMemoryAddresses()
 	gVehiclePool = (void **)0xA0FDE4;
 	gPedPool = (void **)0x97F2AC;
 	gObjectPool = (void **)0x94DBE0;
-	gRwEngine = (unsigned int *)0x7870C0; 
+	gRwEngine = (unsigned int *)0x7870C0;
 	gRadarRange = (float *)0x974BEC;
 	gRadarBlips = (RadarBlip *)0x7D7D38;
-	AsciiToUnicode = (void(__cdecl *)(const char *, short *)) 0x552500;
-	PrintString = (void(__cdecl *)(float, float, short *)) 0x551040;
-	SetFontStyle = (void(__cdecl *)(int)) 0x54FFE0;
-	SetScale = (void(__cdecl *)(float, float)) 0x550230;
-	SetColor = (void(__cdecl *)(unsigned int *)) 0x550170;
-	SetDropShadowPosition = (void(__cdecl *)(int)) 0x54FF20;
-	SetPropOn = (void(__cdecl *)()) 0x550020;
 }
 
-void OnMenuDrawing(float x, float y, short *text)
-{
-    // Call the original function first
-    if (pfDrawInMenu) pfDrawInMenu(x, y, text);
-
-    unsigned int color = 0;
-    BYTEn(color, 0) = 255; // R
-    BYTEn(color, 1) = 77;  // G
-    BYTEn(color, 2) = 210; // B
-    BYTEn(color, 3) = 255; // A
-
-    SetFontStyle(1);
-    SetScale(0.25f * ((float)*gScreenWidth / 640.0f), 0.4f * ((float)*gScreenHeight / 448.0f));
-    SetColor(&color);
-    SetDropShadowPosition(1);
-    SetPropOn();
-
-    short textUni[256];
-    AsciiToUnicode("VC GPS mod by CanerKaraca", textUni);
-
-    // Position it at the bottom left, slightly above the bottom edge (to avoid CLEO text)
-    float textX = 12.0f * ((float)*gScreenWidth / 640.0f);
-    float textY = (float)*gScreenHeight - (28.0f * ((float)*gScreenHeight / 448.0f));
-
-    PrintString(textX, textY, textUni);
-}
 
 void Init()
 {
@@ -397,7 +356,6 @@ void Init()
 	injector::MakeCALL(0x4A4896, InitialiseRadar);
 	injector::MakeNOP(0x4C1D49, 5);
 
-    pfDrawInMenu = (void(__cdecl *)(float, float, short *))injector::MakeCALL(0x49E3D9, OnMenuDrawing).get();
 }
 
 
@@ -565,13 +523,13 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 		{
 			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
 			{
-				switch (blip->m_dwBlipType)
+				switch (static_cast<eBlipType>(blip->m_dwBlipType))
 				{
-				case static_cast<int>(eBlipType::BLIP_CAR):
+				case eBlipType::BLIP_CAR:
 					if (*gVehiclePool)
 						entity = VehicleGetAt(*gVehiclePool, blip->m_dwEntityHandle);
 					break;
-				case static_cast<int>(eBlipType::BLIP_PED):
+				case eBlipType::BLIP_PED:
 					if (*gPedPool)
 					{
 						entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
@@ -579,7 +537,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 							entity = GET_PED_CAR(entity);
 					}
 					break;
-				case static_cast<int>(eBlipType::BLIP_OBJECT):
+				case eBlipType::BLIP_OBJECT:
 					if (*gObjectPool)
 						entity = ObjectGetAt(*gObjectPool, blip->m_dwEntityHandle);
 					break;
