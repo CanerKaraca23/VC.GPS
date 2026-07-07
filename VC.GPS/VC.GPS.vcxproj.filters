@@ -14,7 +14,10 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  <ClCompile Include="Config.cpp"><Filter>Source Files</Filter></ClCompile></ItemGroup>
+    <ClCompile Include="Config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
 
   <ItemGroup>
     <ClInclude Include="injector\injector.hpp">
@@ -26,5 +29,8 @@
     <ClInclude Include="injector\gvm\translator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-  <ClInclude Include="Config.hpp"><Filter>Header Files</Filter></ClInclude></ItemGroup>
+    <ClInclude Include="Config.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

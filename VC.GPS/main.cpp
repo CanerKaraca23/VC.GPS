@@ -365,17 +365,10 @@ void OnMenuDrawing(float x, float y, short *text)
     if (pfDrawInMenu) pfDrawInMenu(x, y, text);
 
     unsigned int color = 0;
-    if (Config::customColorsEnabled) {
-        BYTEn(color, 0) = Config::waypointColor.r;
-        BYTEn(color, 1) = Config::waypointColor.g;
-        BYTEn(color, 2) = Config::waypointColor.b;
-        BYTEn(color, 3) = Config::waypointColor.a;
-    } else {
-        BYTEn(color, 0) = 255;
-        BYTEn(color, 1) = 77;
-        BYTEn(color, 2) = 210;
-        BYTEn(color, 3) = 255;
-    }
+    BYTEn(color, 0) = Config::LineColor.r;
+    BYTEn(color, 1) = Config::LineColor.g;
+    BYTEn(color, 2) = Config::LineColor.b;
+    BYTEn(color, 3) = Config::LineColor.a;
 
     SetFontStyle(1);
     SetScale(0.25f * ((float)*gScreenWidth / 640.0f), 0.4f * ((float)*gScreenHeight / 448.0f));
@@ -441,17 +434,10 @@ void DrawPathFindLineMenuMap()
                         lastMenuTargetPos = *targetBlipWorldPos;
                         DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
 
-                        if (Config::customColorsEnabled) {
-                            BYTEn(gPathColor, 0) = Config::waypointColor.r;
-                            BYTEn(gPathColor, 1) = Config::waypointColor.g;
-                            BYTEn(gPathColor, 2) = Config::waypointColor.b;
-                            BYTEn(gPathColor, 3) = Config::waypointColor.a;
-                        } else {
-                            BYTEn(gPathColor, 0) = 255;
-                            BYTEn(gPathColor, 1) = 77;
-                            BYTEn(gPathColor, 2) = 210;
-                            BYTEn(gPathColor, 3) = 255;
-                        }
+                        BYTEn(gPathColor, 0) = Config::LineColor.r;
+                        BYTEn(gPathColor, 1) = Config::LineColor.g;
+                        BYTEn(gPathColor, 2) = Config::LineColor.b;
+                        BYTEn(gPathColor, 3) = Config::LineColor.a;
                     }
                 }
             }
@@ -557,17 +543,10 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     }
                     else
                     {
-                        if (Config::customColorsEnabled) {
-                            BYTEn(info->color, 0) = Config::waypointColor.r;
-                            BYTEn(info->color, 1) = Config::waypointColor.g;
-                            BYTEn(info->color, 2) = Config::waypointColor.b;
-                            BYTEn(info->color, 3) = Config::waypointColor.a;
-                        } else {
-                            BYTEn(info->color, 0) = 255;
-                            BYTEn(info->color, 1) = 77;
-                            BYTEn(info->color, 2) = 210;
-                            BYTEn(info->color, 3) = 255;
-                        }
+                        BYTEn(info->color, 0) = Config::LineColor.r;
+                        BYTEn(info->color, 1) = Config::LineColor.g;
+                        BYTEn(info->color, 2) = Config::LineColor.b;
+                        BYTEn(info->color, 3) = Config::LineColor.a;
                         info->targetPoint = targetBlipWorldPos;
                         return info;
                     }

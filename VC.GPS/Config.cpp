@@ -4,8 +4,8 @@
 
 float Config::lineWidth = 2.5f;
 float Config::removeRadius = 15.0f;
-bool Config::customColorsEnabled = false;
-RGBA Config::waypointColor = {255, 77, 210, 255};
+
+RGBA Config::LineColor = {255, 77, 210, 255};
 std::string Config::iniPath = "";
 
 void Config::Init(const std::string& iniFilePath) {
@@ -18,11 +18,10 @@ void Config::Init(const std::string& iniFilePath) {
 }
 
 void Config::GenerateDefaultConfig() {
-    WritePrivateProfileStringA("Navigation", "lineWidth", "2.5", iniPath.c_str());
-    WritePrivateProfileStringA("Navigation", "removeRadius", "15.0", iniPath.c_str());
+    WritePrivateProfileStringA("Navigation", "LineWidth", "2.5", iniPath.c_str());
+    WritePrivateProfileStringA("Navigation", "RemoveRadiusDistance", "15.0", iniPath.c_str());
 
-    WritePrivateProfileStringA("Custom Colors", "enabled", "0", iniPath.c_str());
-    WritePrivateProfileStringA("Custom Colors", "waypoint", "255, 77, 210, 255", iniPath.c_str());
+    WritePrivateProfileStringA("Custom Colors", "LineColor", "255, 77, 210, 255", iniPath.c_str());
 
 }
 
@@ -53,16 +52,15 @@ RGBA Config::ParseColor(const std::string& colorStr, RGBA defaultColor) {
 void Config::LoadConfig() {
     char buffer[256];
 
-    GetPrivateProfileStringA("Navigation", "lineWidth", "2.5", buffer, sizeof(buffer), iniPath.c_str());
+    GetPrivateProfileStringA("Navigation", "LineWidth", "2.5", buffer, sizeof(buffer), iniPath.c_str());
     try { lineWidth = std::stof(buffer); } catch (...) { lineWidth = 2.5f; }
 
 
-    GetPrivateProfileStringA("Navigation", "removeRadius", "15.0", buffer, sizeof(buffer), iniPath.c_str());
+    GetPrivateProfileStringA("Navigation", "RemoveRadiusDistance", "15.0", buffer, sizeof(buffer), iniPath.c_str());
     try { removeRadius = std::stof(buffer); } catch (...) { removeRadius = 15.0f; }
 
-    customColorsEnabled = GetPrivateProfileIntA("Custom Colors", "enabled", 0, iniPath.c_str()) != 0;
 
-    GetPrivateProfileStringA("Custom Colors", "waypoint", "255, 77, 210, 255", buffer, sizeof(buffer), iniPath.c_str());
-    waypointColor = ParseColor(buffer, {255, 77, 210, 255}
-);
+
+    GetPrivateProfileStringA("Custom Colors", "LineColor", "255, 77, 210, 255", buffer, sizeof(buffer), iniPath.c_str());
+    LineColor = ParseColor(buffer, {255, 77, 210, 255});
 }

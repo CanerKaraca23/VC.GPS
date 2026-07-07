@@ -12,8 +12,8 @@ public:
     static float lineWidth;
     static float removeRadius;
 
-    static bool customColorsEnabled;
-    static RGBA waypointColor;
+
+    static RGBA LineColor;
 
 private:
     static std::string iniPath;
