@@ -405,48 +405,35 @@ unsigned int gPathColor = 0;
 bool bCheckedMenuMap = false;
 uintptr_t* ppMenuNew = nullptr;
 CVector lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+CVector lastMenuPlayerPos = {0.0f, 0.0f, 0.0f};
 
 void DrawPathFindLineMenuMap()
 {
 	if (!pMenuMap_GetScreenCoords) return;
 
-    if (ppMenuNew && *ppMenuNew)
-    {
-        int targetBlipIndex = *(int*)(*ppMenuNew + 0x18);
-        if (targetBlipIndex == 1)
-        {
-            CVector* targetBlipWorldPos = (CVector*)(*ppMenuNew + 0x1C);
-            if (targetBlipWorldPos->x != 0.0f || targetBlipWorldPos->y != 0.0f)
-            {
-                CVehicle *playerCar = FindPlayerVehicle();
-                if (playerCar)
-                {
-                    // If target changed, re-calculate path instantly
-                    if (targetBlipWorldPos->x != lastMenuTargetPos.x || targetBlipWorldPos->y != lastMenuTargetPos.y || targetBlipWorldPos->z != lastMenuTargetPos.z)
-                    {
-                        lastMenuTargetPos = *targetBlipWorldPos;
-                        DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
+	CVehicle *playerCar = FindPlayerVehicle();
+	if (!playerCar) return;
 
-                        BYTEn(gPathColor, 0) = 255;
-                        BYTEn(gPathColor, 1) = 77;
-                        BYTEn(gPathColor, 2) = 210;
-                        BYTEn(gPathColor, 3) = 255;
-                    }
-                }
-            }
-            else
-            {
-                gwPathNodesCount = 0;
-                lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
-            }
-        }
-        else
-        {
-            // Waypoint removed, clear path instantly
-            gwPathNodesCount = 0;
-            lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
-        }
-    }
+	PathLineInfo info{};
+	GetPlaceInfo(&info);
+
+	if (info.targetPoint)
+	{
+		// If target or player position changed, re-calculate path instantly
+		if (info.targetPoint->x != lastMenuTargetPos.x || info.targetPoint->y != lastMenuTargetPos.y || info.targetPoint->z != lastMenuTargetPos.z ||
+			playerCar->m_sCoords.m_sMatrix.pos.x != lastMenuPlayerPos.x || playerCar->m_sCoords.m_sMatrix.pos.y != lastMenuPlayerPos.y || playerCar->m_sCoords.m_sMatrix.pos.z != lastMenuPlayerPos.z)
+		{
+			lastMenuTargetPos = *info.targetPoint;
+			lastMenuPlayerPos = playerCar->m_sCoords.m_sMatrix.pos;
+			gPathColor = info.color;
+			DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
+		}
+	}
+	else
+	{
+		gwPathNodesCount = 0;
+		lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+	}
 
 	if (gwPathNodesCount <= 1) return;
 
