@@ -407,6 +407,11 @@ uintptr_t* ppMenuNew = nullptr;
 CVector lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
 CVector lastMenuPlayerPos = {0.0f, 0.0f, 0.0f};
 
+inline bool operator!=(const CVector& a, const CVector& b)
+{
+	return a.x != b.x || a.y != b.y || a.z != b.z;
+}
+
 void DrawPathFindLineMenuMap()
 {
 	if (!pMenuMap_GetScreenCoords) return;
@@ -420,8 +425,7 @@ void DrawPathFindLineMenuMap()
 	{
 		gPathColor = info.color;
 		// If target or player position changed, re-calculate path instantly
-		if (info.targetPoint->x != lastMenuTargetPos.x || info.targetPoint->y != lastMenuTargetPos.y || info.targetPoint->z != lastMenuTargetPos.z ||
-			playerCar->m_sCoords.m_sMatrix.pos.x != lastMenuPlayerPos.x || playerCar->m_sCoords.m_sMatrix.pos.y != lastMenuPlayerPos.y || playerCar->m_sCoords.m_sMatrix.pos.z != lastMenuPlayerPos.z)
+		if (*info.targetPoint != lastMenuTargetPos || playerCar->m_sCoords.m_sMatrix.pos != lastMenuPlayerPos)
 		{
 			lastMenuTargetPos = *info.targetPoint;
 			lastMenuPlayerPos = playerCar->m_sCoords.m_sMatrix.pos;
