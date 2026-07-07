@@ -14,8 +14,6 @@
 
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7A69852D-68C5-4D65-8A5A-ABD05D09C966}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -45,7 +43,6 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <ConformanceMode>true</ConformanceMode>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
@@ -59,7 +56,6 @@
 
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
-      <StringPooling>true</StringPooling>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -67,10 +63,8 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClInclude Include="injector\injector.hpp" />
-    <ClInclude Include="injector\gvm\gvm.hpp" />
-    <ClInclude Include="injector\gvm\translator.hpp" />
+    <ClCompile Include="**\*.cpp" />
+    <ClInclude Include="**\*.hpp" />
   </ItemGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
