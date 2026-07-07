@@ -561,6 +561,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 		{
 			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
 			{
+				entity = nullptr;
 				switch (static_cast<eBlipType>(blip->m_dwBlipType))
 				{
 				case eBlipType::BLIP_CAR:
