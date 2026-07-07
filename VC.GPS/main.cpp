@@ -7,13 +7,13 @@
 #include <stdint.h>
 
 
-#define MAX_POINTS 200
+constexpr int MAX_POINTS = 200;
 
-#define rwRENDERSTATETEXTURERASTER 1
-#define rwPRIMTYPETRIFAN 5
-#define D3DRS_ALPHAFUNC 25
-#define D3DCMP_GREATER 5
-#define LINE_WIDTH 1400.0f
+constexpr unsigned int rwRENDERSTATETEXTURERASTER = 1;
+constexpr unsigned int rwPRIMTYPETRIFAN = 5;
+constexpr unsigned int D3DRS_ALPHAFUNC = 25;
+constexpr unsigned int D3DCMP_GREATER = 5;
+constexpr float LINE_WIDTH = 1400.0f;
 
 
 
@@ -165,7 +165,7 @@ short gwPathNodesCount;
 CVector gBlipBestPos;
 
 CVehicle *(__cdecl *FindPlayerVehicle)();
-bool (*IsPlayerOnAMission)() = (bool(*)()) 0x44FE30;
+bool (*IsPlayerOnAMission)();
 void(__thiscall *DoPathSearch)(void *, unsigned char, CVector, int, CVector, CPathNode **, short *, short, CVehicle *, float *, float, int);
 float(__cdecl *RwIm2DGetNearScreenZ)();
 void(__cdecl *RwRenderStateSet)(unsigned int, unsigned int);
@@ -477,7 +477,6 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	float distance = 9999800001.99f;
 	float newDistance = 0.0f;
 	unsigned int color = 0;
-	int point = 0;
 
 
 
@@ -630,7 +629,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 void ProcessPathfind()
 {
 	DrawRadarMap();
-	PathLineInfo info = {0};
+	PathLineInfo info{};
 	CVehicle *playerCar = FindPlayerVehicle();
 	if (playerCar)
 	{
