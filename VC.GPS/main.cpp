@@ -124,12 +124,17 @@ struct CPathNode //size 0x14
 };
 
 
-enum class eBlipType
+enum class eBlipType : unsigned int
 {
-	BLIP_COORD = 0,
-	BLIP_CAR,
-	BLIP_PED,
-	BLIP_OBJECT
+    BLIP_NONE = 0,
+    BLIP_CAR = 1,
+    BLIP_CHAR = 2,
+    BLIP_OBJECT = 3,
+    BLIP_COORD = 4,
+    BLIP_CONTACTPOINT = 5,
+    BLIP_SPOTLIGHT = 6,
+    BLIP_PICKUP = 7,
+    BLIP_AIRSTRIP = 8
 };
 
 #pragma pack(push, 1)
@@ -557,42 +562,44 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	{
 		if (blip->m_bInUse && blip->m_nRadarSprite == RADAR_SPRITE_NONE)
 		{
-			if (blip->m_nBlipType > 0 && blip->m_nBlipType < 4)
+			if (blip->m_nBlipType > static_cast<unsigned int>(eBlipType::BLIP_NONE) && blip->m_nBlipType < static_cast<unsigned int>(eBlipType::BLIP_CONTACTPOINT))
 			{
-				CPlaceable *entity = nullptr;
-				switch (static_cast<eBlipType>(blip->m_nBlipType))
+				if (blip->m_nBlipType != static_cast<unsigned int>(eBlipType::BLIP_COORD))
 				{
-				case eBlipType::BLIP_CAR:
-					if (gVehiclePool && *gVehiclePool && VehicleGetAt)
-						entity = VehicleGetAt(*gVehiclePool, blip->m_nEntityHandle);
-					break;
-				case eBlipType::BLIP_PED:
-					if (gPedPool && *gPedPool && PedGetAt)
+					CPlaceable *entity = nullptr;
+					switch (static_cast<eBlipType>(blip->m_nBlipType))
 					{
-						entity = PedGetAt(*gPedPool, blip->m_nEntityHandle);
-						if (entity && IS_PED_IN_CAR(entity))
-							entity = GET_PED_CAR(entity);
+					case eBlipType::BLIP_CAR:
+						if (gVehiclePool && *gVehiclePool && VehicleGetAt)
+							entity = VehicleGetAt(*gVehiclePool, blip->m_nEntityHandle);
+						break;
+					case eBlipType::BLIP_CHAR:
+						if (gPedPool && *gPedPool && PedGetAt)
+						{
+							entity = PedGetAt(*gPedPool, blip->m_nEntityHandle);
+							if (entity && IS_PED_IN_CAR(entity))
+								entity = GET_PED_CAR(entity);
+						}
+						break;
+					case eBlipType::BLIP_OBJECT:
+						if (gObjectPool && *gObjectPool && ObjectGetAt)
+							entity = ObjectGetAt(*gObjectPool, blip->m_nEntityHandle);
+						break;
 					}
-					break;
-				case eBlipType::BLIP_OBJECT:
-					if (gObjectPool && *gObjectPool && ObjectGetAt)
-						entity = ObjectGetAt(*gObjectPool, blip->m_nEntityHandle);
-					break;
+					if (entity)
+					{
+						blipPos.x = entity->m_sCoords.m_sMatrix.pos.x;
+						blipPos.y = entity->m_sCoords.m_sMatrix.pos.y;
+						blipPos.z = entity->m_sCoords.m_sMatrix.pos.z;
+					}
+					else continue;
 				}
-				if (entity)
+				else
 				{
-					blipPos.x = entity->m_sCoords.m_sMatrix.pos.x;
-					blipPos.y = entity->m_sCoords.m_sMatrix.pos.y;
-					blipPos.z = entity->m_sCoords.m_sMatrix.pos.z;
+					blipPos.x = blip->m_vecPos.x;
+					blipPos.y = blip->m_vecPos.y;
+					blipPos.z = blip->m_vecPos.z;
 				}
-				else continue;
-			}
-			else
-			{
-				blipPos.x = blip->m_vecPos.x;
-				blipPos.y = blip->m_vecPos.y;
-				blipPos.z = blip->m_vecPos.z;
-			}
 
 			if (blipPos.x == 0.0f && blipPos.y == 0.0f)
 				continue;
