@@ -15,11 +15,11 @@
   <PropertyGroup>
     <ProjectGuid>{7A69852D-68C5-4D65-8A5A-ABD05D09C966}</ProjectGuid>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v145</PlatformToolset>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(Configuration)\</IntDir>
     <TargetExt>.asi</TargetExt>
     <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
     <WholeProgramOptimization Condition="'$(Configuration)'=='Release'">true</WholeProgramOptimization>
   </PropertyGroup>
 
@@ -38,8 +38,10 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <ClCompile Include="**\*.cpp" />
-    <ClInclude Include="**\*.hpp" />
+    <ClCompile Include="main.cpp" />
+    <ClInclude Include="injector\injector.hpp" />
+    <ClInclude Include="injector\gvm\gvm.hpp" />
+    <ClInclude Include="injector\gvm\translator.hpp" />
   </ItemGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
