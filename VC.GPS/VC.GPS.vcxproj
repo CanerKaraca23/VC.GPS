@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -62,10 +62,5 @@
     </ClCompile>
   </ItemDefinitionGroup>
 
-  <ItemGroup>
-    <ClCompile Include="**\*.cpp" />
-    <ClInclude Include="**\*.hpp" />
-  </ItemGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-</Project>
+<ItemGroup><ClCompile Include="main.cpp" /><ClCompile Include="Config.cpp" /><ClCompile Include="Logger.cpp" /></ItemGroup><ItemGroup><ClInclude Include="Config.hpp" /><ClInclude Include="Logger.hpp" /><ClInclude Include="injector\injector.hpp" /><ClInclude Include="injector\gvm\gvm.hpp" /><ClInclude Include="injector\gvm\translator.hpp" /></ItemGroup></Project>

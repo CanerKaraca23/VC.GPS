@@ -5,6 +5,8 @@
 #include "injector/injector.hpp"
 #include <math.h>
 #include <stdint.h>
+#include "Config.hpp"
+#include "Logger.hpp"
 
 
 constexpr int MAX_POINTS = 200;
@@ -13,7 +15,6 @@ constexpr unsigned int rwRENDERSTATETEXTURERASTER = 1;
 constexpr unsigned int rwPRIMTYPETRIFAN = 5;
 constexpr unsigned int D3DRS_ALPHAFUNC = 25;
 constexpr unsigned int D3DCMP_GREATER = 5;
-constexpr float LINE_WIDTH = 1400.0f;
 
 
 
@@ -365,10 +366,17 @@ void OnMenuDrawing(float x, float y, short *text)
     if (pfDrawInMenu) pfDrawInMenu(x, y, text);
 
     unsigned int color = 0;
-    BYTEn(color, 0) = 255; // R
-    BYTEn(color, 1) = 77;  // G
-    BYTEn(color, 2) = 210; // B
-    BYTEn(color, 3) = 255; // A
+    if (Config::customColorsEnabled) {
+        BYTEn(color, 0) = Config::waypointColor.r;
+        BYTEn(color, 1) = Config::waypointColor.g;
+        BYTEn(color, 2) = Config::waypointColor.b;
+        BYTEn(color, 3) = Config::waypointColor.a;
+    } else {
+        BYTEn(color, 0) = 255;
+        BYTEn(color, 1) = 77;
+        BYTEn(color, 2) = 210;
+        BYTEn(color, 3) = 255;
+    }
 
     SetFontStyle(1);
     SetScale(0.25f * ((float)*gScreenWidth / 640.0f), 0.4f * ((float)*gScreenHeight / 448.0f));
@@ -386,15 +394,27 @@ void OnMenuDrawing(float x, float y, short *text)
     PrintString(textX, textY, textUni);
 }
 
-void Init()
+void Init(HMODULE hModule)
 {
+	char modulePath[MAX_PATH];
+	GetModuleFileNameA(hModule, modulePath, MAX_PATH);
+	std::string path(modulePath);
+	std::string dir = path.substr(0, path.find_last_of("\\/")) + "\\";
+
+	Config::Init(dir + "VC.GPS.ini");
+	Logger::Init(dir + "VC.GPS.log", Config::enableLog);
+
+	Logger::Log("VC.GPS Initializing...");
+
 	GetMemoryAddresses();
 	injector::MakeCALL(0x4C5D4B, ProcessPathfind);
 	injector::MakeCALL(0x4C17C5, DrawPathLineMask);
 	injector::MakeCALL(0x4A4896, InitialiseRadar);
 	injector::MakeNOP(0x4C1D49, 5);
 
-    pfDrawInMenu = (void(__cdecl *)(float, float, short *))injector::MakeCALL(0x49E3D9, OnMenuDrawing).get();
+	pfDrawInMenu = (void(__cdecl *)(float, float, short *))injector::MakeCALL(0x49E3D9, OnMenuDrawing).get();
+
+	Logger::Log("VC.GPS Initialized Successfully!");
 }
 
 
@@ -427,10 +447,17 @@ void DrawPathFindLineMenuMap()
                         lastMenuTargetPos = *targetBlipWorldPos;
                         DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
 
-                        BYTEn(gPathColor, 0) = 255;
-                        BYTEn(gPathColor, 1) = 77;
-                        BYTEn(gPathColor, 2) = 210;
-                        BYTEn(gPathColor, 3) = 255;
+                        if (Config::customColorsEnabled) {
+                            BYTEn(gPathColor, 0) = Config::waypointColor.r;
+                            BYTEn(gPathColor, 1) = Config::waypointColor.g;
+                            BYTEn(gPathColor, 2) = Config::waypointColor.b;
+                            BYTEn(gPathColor, 3) = Config::waypointColor.a;
+                        } else {
+                            BYTEn(gPathColor, 0) = 255;
+                            BYTEn(gPathColor, 1) = 77;
+                            BYTEn(gPathColor, 2) = 210;
+                            BYTEn(gPathColor, 3) = 255;
+                        }
                     }
                 }
             }
@@ -465,7 +492,7 @@ void DrawPathFindLineMenuMap()
 		pMenuMap_GetScreenCoords(world2.x, world2.y, &screen2.x, &screen2.y);
 
         // Make the line thicker on the menu map
-		DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 5.0f, gPathColor);
+		DrawLine(screen1, screen2, ((Config::lineWidth * 560.0f) / (*gRadarRange)) * 5.0f, gPathColor);
 	}
 }
 
@@ -530,16 +557,23 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                 if (playerCar)
                 {
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
-                    if (distSq < 225.0f)
+                    if (distSq < (Config::removeRadius * Config::removeRadius))
                     {
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
                     else
                     {
-                        BYTEn(info->color, 0) = 255;
-                        BYTEn(info->color, 1) = 77;
-                        BYTEn(info->color, 2) = 210;
-                        BYTEn(info->color, 3) = 255;
+                        if (Config::customColorsEnabled) {
+                            BYTEn(info->color, 0) = Config::waypointColor.r;
+                            BYTEn(info->color, 1) = Config::waypointColor.g;
+                            BYTEn(info->color, 2) = Config::waypointColor.b;
+                            BYTEn(info->color, 3) = Config::waypointColor.a;
+                        } else {
+                            BYTEn(info->color, 0) = 255;
+                            BYTEn(info->color, 1) = 77;
+                            BYTEn(info->color, 2) = 210;
+                            BYTEn(info->color, 3) = 255;
+                        }
                         info->targetPoint = targetBlipWorldPos;
                         return info;
                     }
@@ -564,10 +598,12 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				switch (static_cast<eBlipType>(blip->m_dwBlipType))
 				{
 				case eBlipType::BLIP_CAR:
+				    if (!Config::trackMovingTargets) continue;
 					if (gVehiclePool && *gVehiclePool)
 						entity = VehicleGetAt(*gVehiclePool, blip->m_dwEntityHandle);
 					break;
 				case eBlipType::BLIP_PED:
+				    if (!Config::trackMovingTargets) continue;
 					if (gPedPool && *gPedPool)
 					{
 						entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
@@ -660,7 +696,7 @@ void ProcessPathfind()
 						CVector2D screen1, screen2;
 						TransformRadarPointToScreenSpace(screen1, radar1);
 						TransformRadarPointToScreenSpace(screen2, radar2);
-						DrawLine(screen1, screen2, LINE_WIDTH / (*gRadarRange), info.color);
+						DrawLine(screen1, screen2, (Config::lineWidth * 560.0f) / (*gRadarRange), info.color);
 					}
 				}
 			}
@@ -673,11 +709,11 @@ void ProcessPathfind()
 }
 
 
-BOOL APIENTRY DllMain(HMODULE /*hModule*/, DWORD reason, LPVOID /*lpReserved*/)
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID /*lpReserved*/)
 {
 	if (reason == DLL_PROCESS_ATTACH)
 	{
-		Init();
+		Init(hModule);
 	}
 	return TRUE;
 }

@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   
   <ItemGroup>
     <Filter Include="Source Files">
@@ -14,7 +14,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
+  <ClCompile Include="Config.cpp"><Filter>Source Files</Filter></ClCompile><ClCompile Include="Logger.cpp"><Filter>Source Files</Filter></ClCompile></ItemGroup>
 
   <ItemGroup>
     <ClInclude Include="injector\injector.hpp">
@@ -26,5 +26,5 @@
     <ClInclude Include="injector\gvm\translator.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
+  <ClInclude Include="Config.hpp"><Filter>Header Files</Filter></ClInclude><ClInclude Include="Logger.hpp"><Filter>Header Files</Filter></ClInclude></ItemGroup>
 </Project>
