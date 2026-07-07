@@ -433,6 +433,7 @@ void DrawPathFindLineMenuMap()
 	{
 		gwPathNodesCount = 0;
 		lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+		lastMenuPlayerPos = {0.0f, 0.0f, 0.0f};
 	}
 
 	if (gwPathNodesCount <= 1) return;
