@@ -600,6 +600,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 					blipPos.y = blip->m_vecPos.y;
 					blipPos.z = blip->m_vecPos.z;
 				}
+			}
 
 			if (blipPos.x == 0.0f && blipPos.y == 0.0f)
 				continue;
