@@ -32,11 +32,11 @@ void Logger::Log(const char* format, ...) {
     va_end(args);
 
     time_t rawtime;
-    struct tm* timeinfo;
+    struct tm timeinfo;
     char timeBuffer[80];
     time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    strftime(timeBuffer, sizeof(timeBuffer), "[%H:%M:%S] ", timeinfo);
+    localtime_s(&timeinfo, &rawtime);
+    strftime(timeBuffer, sizeof(timeBuffer), "[%H:%M:%S] ", &timeinfo);
 
     std::ofstream file(logPath, std::ios::out | std::ios::app);
     if (file.is_open()) {
