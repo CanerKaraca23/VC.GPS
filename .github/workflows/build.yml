@@ -20,8 +20,14 @@ jobs:
     - name: Build
       run: msbuild VC.GPS.sln /p:Configuration=Release /p:Platform=x86 /m
 
+    - name: Debug - List files # DOSYAYI BULMAK İÇİN BU ADIMI EKLE
+      shell: bash
+      run: find . -name "*.asi"
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
         name: VC.GPS
-        path: bin/Release/VC.GPS.asi
+        path: |
+          bin/Release/VC.GPS.asi
+          **/VC.GPS.asi
