@@ -132,23 +132,25 @@ enum class eBlipType
 	BLIP_OBJECT
 };
 
-#pragma pack(push, 4)
+#pragma pack(push, 1)
 struct RadarBlip
 {
-	unsigned int m_nColour;
-	unsigned int m_nBlipType;
-	int m_nEntityHandle;
-	CVector m_vec2DPos;
-	CVector m_vecPos;
-	unsigned short m_nBlipIndex;
-	bool m_bDim;
-	char m_bInUse;
-	bool m_bShortRange;
-	char m_bUnk;
-	float m_fSphereRadius;
-	unsigned short m_nBlipSize;
-	unsigned short m_nBlipDisplay;
-	unsigned short m_nRadarSprite;
+	unsigned int m_nColour; // 0
+	unsigned int m_nBlipType; // 4
+	int m_nEntityHandle; // 8
+	CVector m_vec2DPos; // 12
+	CVector m_vecPos; // 24
+	unsigned short m_nBlipIndex; // 36
+	bool m_bDim; // 38
+	char m_bInUse; // 39
+	bool m_bShortRange; // 40
+	char m_bUnk; // 41
+	char _pad[2]; // 42, Padding for Vice City alignment
+	float m_fSphereRadius; // 44
+	unsigned short m_nBlipSize; // 48
+	unsigned short m_nBlipDisplay; // 50
+	unsigned short m_nRadarSprite; // 52
+	char _pad2[2]; // 54, Padding to end struct at 56 bytes
 };
 #pragma pack(pop)
 
