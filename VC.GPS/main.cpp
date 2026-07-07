@@ -471,7 +471,6 @@ void DrawPathFindLineMenuMap()
 
 PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 {
-	CPlaceable *entity = nullptr;
 	RadarBlip *bestBlip = nullptr;
 	CVector blipPos = { 0.0f, 0.0f, 0.0f };
 	float distance = 9999800001.99f;
@@ -561,7 +560,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 		{
 			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
 			{
-				entity = nullptr;
+				CPlaceable *entity = nullptr;
 				switch (static_cast<eBlipType>(blip->m_dwBlipType))
 				{
 				case eBlipType::BLIP_CAR:
