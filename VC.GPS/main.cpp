@@ -562,44 +562,45 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	{
 		if (blip->m_bInUse && blip->m_nRadarSprite == RADAR_SPRITE_NONE)
 		{
-			if (blip->m_nBlipType > static_cast<unsigned int>(eBlipType::BLIP_NONE) && blip->m_nBlipType < static_cast<unsigned int>(eBlipType::BLIP_CONTACTPOINT))
+			if (blip->m_nBlipType == static_cast<unsigned int>(eBlipType::BLIP_COORD))
 			{
-				if (blip->m_nBlipType != static_cast<unsigned int>(eBlipType::BLIP_COORD))
+				blipPos.x = blip->m_vecPos.x;
+				blipPos.y = blip->m_vecPos.y;
+				blipPos.z = blip->m_vecPos.z;
+			}
+			else if (blip->m_nBlipType > static_cast<unsigned int>(eBlipType::BLIP_NONE) && blip->m_nBlipType < static_cast<unsigned int>(eBlipType::BLIP_COORD))
+			{
+				CPlaceable *entity = nullptr;
+				switch (static_cast<eBlipType>(blip->m_nBlipType))
 				{
-					CPlaceable *entity = nullptr;
-					switch (static_cast<eBlipType>(blip->m_nBlipType))
+				case eBlipType::BLIP_CAR:
+					if (gVehiclePool && *gVehiclePool && VehicleGetAt)
+						entity = VehicleGetAt(*gVehiclePool, blip->m_nEntityHandle);
+					break;
+				case eBlipType::BLIP_CHAR:
+					if (gPedPool && *gPedPool && PedGetAt)
 					{
-					case eBlipType::BLIP_CAR:
-						if (gVehiclePool && *gVehiclePool && VehicleGetAt)
-							entity = VehicleGetAt(*gVehiclePool, blip->m_nEntityHandle);
-						break;
-					case eBlipType::BLIP_CHAR:
-						if (gPedPool && *gPedPool && PedGetAt)
-						{
-							entity = PedGetAt(*gPedPool, blip->m_nEntityHandle);
-							if (entity && IS_PED_IN_CAR(entity))
-								entity = GET_PED_CAR(entity);
-						}
-						break;
-					case eBlipType::BLIP_OBJECT:
-						if (gObjectPool && *gObjectPool && ObjectGetAt)
-							entity = ObjectGetAt(*gObjectPool, blip->m_nEntityHandle);
-						break;
+						entity = PedGetAt(*gPedPool, blip->m_nEntityHandle);
+						if (entity && IS_PED_IN_CAR(entity))
+							entity = GET_PED_CAR(entity);
 					}
-					if (entity)
-					{
-						blipPos.x = entity->m_sCoords.m_sMatrix.pos.x;
-						blipPos.y = entity->m_sCoords.m_sMatrix.pos.y;
-						blipPos.z = entity->m_sCoords.m_sMatrix.pos.z;
-					}
-					else continue;
+					break;
+				case eBlipType::BLIP_OBJECT:
+					if (gObjectPool && *gObjectPool && ObjectGetAt)
+						entity = ObjectGetAt(*gObjectPool, blip->m_nEntityHandle);
+					break;
 				}
-				else
+				if (entity)
 				{
-					blipPos.x = blip->m_vecPos.x;
-					blipPos.y = blip->m_vecPos.y;
-					blipPos.z = blip->m_vecPos.z;
+					blipPos.x = entity->m_sCoords.m_sMatrix.pos.x;
+					blipPos.y = entity->m_sCoords.m_sMatrix.pos.y;
+					blipPos.z = entity->m_sCoords.m_sMatrix.pos.z;
 				}
+				else continue;
+			}
+			else
+			{
+				continue; // Skip contact points, spotlights, pickups, airstrips, etc.
 			}
 
 			if (blipPos.x == 0.0f && blipPos.y == 0.0f)
