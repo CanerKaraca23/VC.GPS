@@ -278,17 +278,17 @@ void DrawPathLineMask()
 		RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
 		TransformRadarPointToScreenSpace(points[0], points[0]);
 		TransformRadarPointToScreenSpace(points[1], points[1]);
-		SetSpriteVertices(points[1].x, (float)*gScreenHeight, points[1].x, 0.0, 0.0, (float)*gScreenHeight, 0.0, 0.0, &color,
+		SetSpriteVertices(points[1].x, (float)*gScreenHeight, points[1].x, 0.0f, 0.0f, (float)*gScreenHeight, 0.0f, 0.0f, &color,
 			&color, &color, &color);
 		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
-		SetSpriteVertices(points[0].x, points[0].y, points[0].x, 0.0, points[1].x, points[0].y, points[1].x, 0.0, &color,
+		SetSpriteVertices(points[0].x, points[0].y, points[0].x, 0.0f, points[1].x, points[0].y, points[1].x, 0.0f, &color,
 			&color, &color, &color);
 		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
 		SetSpriteVertices(points[0].x, (float)*gScreenHeight, points[0].x, points[1].y, points[1].x, (float)*gScreenHeight,
 			points[1].x, points[1].y, &color, &color, &color, &color);
 		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
-		SetSpriteVertices((float)*gScreenWidth, (float)*gScreenHeight, (float)*gScreenWidth, 0.0, points[0].x, (float)*gScreenHeight,
-			points[0].x, 0.0, &color, &color, &color, &color);
+		SetSpriteVertices((float)*gScreenWidth, (float)*gScreenHeight, (float)*gScreenWidth, 0.0f, points[0].x, (float)*gScreenHeight,
+			points[0].x, 0.0f, &color, &color, &color, &color);
 		RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
 	}
 	RwD3D9SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
@@ -564,11 +564,11 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				switch (static_cast<eBlipType>(blip->m_dwBlipType))
 				{
 				case eBlipType::BLIP_CAR:
-					if (*gVehiclePool)
+					if (gVehiclePool && *gVehiclePool)
 						entity = VehicleGetAt(*gVehiclePool, blip->m_dwEntityHandle);
 					break;
 				case eBlipType::BLIP_PED:
-					if (*gPedPool)
+					if (gPedPool && *gPedPool)
 					{
 						entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
 						if (entity && IS_PED_IN_CAR(entity))
@@ -576,7 +576,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 					}
 					break;
 				case eBlipType::BLIP_OBJECT:
-					if (*gObjectPool)
+					if (gObjectPool && *gObjectPool)
 						entity = ObjectGetAt(*gObjectPool, blip->m_dwEntityHandle);
 					break;
 				}
