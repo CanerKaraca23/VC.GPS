@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 
-constexpr int MAX_POINTS = 200;
+constexpr int MAX_POINTS = 500;
 
 constexpr unsigned int rwRENDERSTATETEXTURERASTER = 1;
 constexpr unsigned int rwPRIMTYPETRIFAN = 5;
