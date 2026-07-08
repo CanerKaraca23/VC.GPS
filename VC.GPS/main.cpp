@@ -200,9 +200,16 @@ RadarBlip *gRadarBlips;
 
 void PlayFrontEndSound(unsigned int frontend, unsigned int volume = 0)
 {
-	void* audioManager = (void*)0x78D718;
+	void* audioManager = (void*)0xA10B8A;
 	void(__thiscall *pPlayFrontEndSound)(void*, unsigned int, unsigned int) = (void(__thiscall *)(void*, unsigned int, unsigned int))0x5F9960;
 	pPlayFrontEndSound(audioManager, frontend, volume);
+}
+
+void PlayOneShot(int audioEntity, unsigned int shot, float volume = 1.0f)
+{
+	void* audioManager = (void*)0xA10B8A;
+	void(__thiscall *pPlayOneShot)(void*, int, unsigned int, float) = (void(__thiscall *)(void*, int, unsigned int, float))0x5F9DA0;
+	pPlayOneShot(audioManager, audioEntity, shot, volume);
 }
 
 void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
@@ -532,7 +539,10 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            PlayFrontEndSound(144, 0); // 144 = MISSION_PASSED
+                            unsigned int audioEntityId = *(unsigned int*)((uintptr_t)playerCar + 0x64);
+                            PlayOneShot(audioEntityId, 104, 1.0f); // 104 = PAGER
+                            PlayFrontEndSound(101, 0); // 101 = MISSION_PASSED
+                            PlayFrontEndSound(197, 0); // 197 = WEAPON_PICKUP
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
