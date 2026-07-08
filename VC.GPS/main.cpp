@@ -560,7 +560,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
 	{
-		if (blip->m_bInUse && blip->m_nRadarSprite == RADAR_SPRITE_NONE)
+		if (blip->m_bInUse && !blip->m_bShortRange && blip->m_nRadarSprite == RADAR_SPRITE_NONE)
 		{
 			if (blip->m_nBlipType > static_cast<unsigned int>(eBlipType::BLIP_NONE) && blip->m_nBlipType < static_cast<unsigned int>(eBlipType::BLIP_COORD))
 			{
@@ -592,7 +592,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				}
 				else continue;
 			}
-			else if (blip->m_nBlipType == static_cast<unsigned int>(eBlipType::BLIP_COORD))
+			else if (blip->m_nBlipType == static_cast<unsigned int>(eBlipType::BLIP_COORD) || blip->m_nBlipType == static_cast<unsigned int>(eBlipType::BLIP_CONTACTPOINT))
 			{
 				blipPos.x = blip->m_vecPos.x;
 				blipPos.y = blip->m_vecPos.y;
