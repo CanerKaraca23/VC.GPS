@@ -198,11 +198,11 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
-void PlayOneShot(int audioEntity, unsigned int shot, float volume = 1.0f)
+void PlayFrontEndSound(unsigned int frontend, unsigned int volume = 0)
 {
 	void* audioManager = (void*)0xA10B8A;
-	void(__thiscall *pPlayOneShot)(void*, int, unsigned int, float) = (void(__thiscall *)(void*, int, unsigned int, float))0x5F9DA0;
-	pPlayOneShot(audioManager, audioEntity, shot, volume);
+	void(__thiscall *pPlayFrontEndSound)(void*, unsigned int, unsigned int) = (void(__thiscall *)(void*, unsigned int, unsigned int))0x5F9960;
+	pPlayFrontEndSound(audioManager, frontend, volume);
 }
 
 void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
@@ -532,8 +532,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            unsigned int audioEntityId = *(unsigned int*)((uintptr_t)playerCar + 0x64);
-                            PlayOneShot(audioEntityId, 104, 1.0f); // 104 = Weapon Pickup sample (verified working)
+                            PlayFrontEndSound(101, 0); // 101 = WEAPON_PICKUP in VC
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
