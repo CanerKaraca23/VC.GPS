@@ -207,7 +207,7 @@ void(__cdecl *SetDropShadowPosition)(int position);
 void(__cdecl *SetPropOn)            ();
 
 void(*pfDrawInMenu)(float x, float y, short *text);
-void(__thiscall *PlayOneShot)(void *, int, unsigned short, float);
+void(__thiscall *PlayFrontEndTrack)(void *, unsigned int, char);
 
 
 void TransformRadarPointToScreenSpace(CVector2D & a1, CVector2D const& a2)
@@ -358,7 +358,7 @@ void GetMemoryAddresses()
 	SetColor = (void(__cdecl *)(unsigned int *)) 0x550170;
 	SetDropShadowPosition = (void(__cdecl *)(int)) 0x54FF20;
 	SetPropOn = (void(__cdecl *)()) 0x550020;
-	PlayOneShot = (void(__thiscall *)(void *, int, unsigned short, float)) 0x5F9DA0;
+	PlayFrontEndTrack = (void(__thiscall *)(void *, unsigned int, char)) 0x5F9910;
 }
 
 void OnMenuDrawing(float x, float y, short *text)
@@ -407,39 +407,48 @@ unsigned int gPathColor = 0;
 bool bCheckedMenuMap = false;
 uintptr_t* ppMenuNew = nullptr;
 CVector lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
-CVector lastMenuPlayerPos = {0.0f, 0.0f, 0.0f};
-
-inline bool operator!=(const CVector& a, const CVector& b)
-{
-	return a.x != b.x || a.y != b.y || a.z != b.z;
-}
 
 void DrawPathFindLineMenuMap()
 {
 	if (!pMenuMap_GetScreenCoords) return;
 
-	PathLineInfo info{};
-	GetPlaceInfo(&info);
+    if (ppMenuNew && *ppMenuNew)
+    {
+        int targetBlipIndex = *(int*)(*ppMenuNew + 0x18);
+        if (targetBlipIndex == 1)
+        {
+            CVector* targetBlipWorldPos = (CVector*)(*ppMenuNew + 0x1C);
+            if (targetBlipWorldPos->x != 0.0f || targetBlipWorldPos->y != 0.0f)
+            {
+                CVehicle *playerCar = FindPlayerVehicle();
+                if (playerCar)
+                {
+                    // If target changed, re-calculate path instantly
+                    if (targetBlipWorldPos->x != lastMenuTargetPos.x || targetBlipWorldPos->y != lastMenuTargetPos.y || targetBlipWorldPos->z != lastMenuTargetPos.z)
+                    {
+                        lastMenuTargetPos = *targetBlipWorldPos;
+                        DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *targetBlipWorldPos, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
 
-	CVehicle *playerCar = FindPlayerVehicle();
-
-	if (info.targetPoint && playerCar)
-	{
-		gPathColor = info.color;
-		// If target or player position changed, re-calculate path instantly
-		if (*info.targetPoint != lastMenuTargetPos || playerCar->m_sCoords.m_sMatrix.pos != lastMenuPlayerPos)
-		{
-			lastMenuTargetPos = *info.targetPoint;
-			lastMenuPlayerPos = playerCar->m_sCoords.m_sMatrix.pos;
-			DoPathSearch(gPathfind, static_cast<unsigned char>(ePathNodeType::PATHNODE_VEHICLE_PATH), playerCar->m_sCoords.m_sMatrix.pos, -1, *info.targetPoint, gapPathNodes, &gwPathNodesCount, MAX_POINTS, playerCar, nullptr, 999999.0f, -1);
-		}
-	}
-	else
-	{
-		gwPathNodesCount = 0;
-		lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
-		lastMenuPlayerPos = {0.0f, 0.0f, 0.0f};
-	}
+                        BYTEn(gPathColor, 0) = 255;
+                        BYTEn(gPathColor, 1) = 77;
+                        BYTEn(gPathColor, 2) = 210;
+                        BYTEn(gPathColor, 3) = 255;
+                    }
+                }
+            }
+            else
+            {
+                gwPathNodesCount = 0;
+                lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+            }
+        }
+        else
+        {
+            // Waypoint removed, clear path instantly
+            gwPathNodesCount = 0;
+            lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+        }
+    }
 
 	if (gwPathNodesCount <= 1) return;
 
@@ -525,13 +534,10 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
                     if (distSq < 225.0f)
                     {
-                        if (PlayOneShot)
+                        if (PlayFrontEndTrack)
                         {
-                            // audioEntity 0 is usually camera/global, which is safe
-                            PlayOneShot((void*)0xA10B8A, 0, 1058, 1.0f);
-
-                            // Also try with ID 128 as fallback
-                            PlayOneShot((void*)0xA10B8A, 0, 128, 1.0f);
+                            PlayFrontEndTrack((void*)0xA10B8A, 1058, 0);
+                            PlayFrontEndTrack((void*)0xA10B8A, 128, 0);
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
