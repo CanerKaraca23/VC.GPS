@@ -198,10 +198,10 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
-void PlayFrontEndSound(unsigned short frontend, unsigned int volume = 0)
+void PlayFrontEndSound(unsigned int frontend, unsigned int volume = 0)
 {
-	void* audioManager = (void*)0xA10B8A;
-	void(__thiscall *pPlayFrontEndSound)(void*, unsigned short, unsigned int) = (void(__thiscall *)(void*, unsigned short, unsigned int))0x5F9960;
+	void* audioManager = (void*)0x78D718;
+	void(__thiscall *pPlayFrontEndSound)(void*, unsigned int, unsigned int) = (void(__thiscall *)(void*, unsigned int, unsigned int))0x5F9960;
 	pPlayFrontEndSound(audioManager, frontend, volume);
 }
 
@@ -532,7 +532,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            PlayFrontEndSound(104, 0); // 104 = PAGER_BEEP, 0 = 0 attenuation (max volume)
+                            PlayFrontEndSound(144, 0); // 144 = MISSION_PASSED
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
