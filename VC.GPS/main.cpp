@@ -198,11 +198,11 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
-void PlayFrontEndSound(unsigned short frontend, unsigned int volume = 0)
+void PlayOneShot(int audioEntity, unsigned short shot, float volume = 1.0f)
 {
 	void* audioManager = (void*)0xA10B8A;
-	void(__thiscall *pPlayFrontEndSound)(void*, unsigned short, unsigned int) = (void(__thiscall *)(void*, unsigned short, unsigned int))0x5F9960;
-	pPlayFrontEndSound(audioManager, frontend, volume);
+	void(__thiscall *pPlayOneShot)(void*, int, unsigned short, float) = (void(__thiscall *)(void*, int, unsigned short, float))0x5F9DA0;
+	pPlayOneShot(audioManager, audioEntity, shot, volume);
 }
 
 void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
@@ -532,7 +532,8 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            PlayFrontEndSound(1, 0); // 1 = FRONTEND_MENU_NAVIGATE, 0 = 0 attenuation (max volume)
+                            unsigned int audioEntityId = *(unsigned int*)((uintptr_t)playerCar + 0x64);
+                            PlayOneShot(audioEntityId, 147, 1.0f); // 147 = RACE_BEEP
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
