@@ -383,7 +383,7 @@ void Init()
     injector::MakeCALL(0x4A4896, InitialiseRadar);
     injector::MakeNOP(0x4C1D49, 5);
 
-    pfDrawInMenu = reinterpret_cast<void(__cdecl *)(float, float, short *)>(injector::MakeCALL(0x49E3D9, OnMenuDrawing).get());
+    pfDrawInMenu = injector::MakeCALL(0x49E3D9, OnMenuDrawing).get<void(__cdecl *)(float, float, short *)>();
 }
 
 void DrawPathFindLineMenuMap()
