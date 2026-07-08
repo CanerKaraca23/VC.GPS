@@ -539,7 +539,8 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            PlayFrontEndSound(197, 0); // 197 = WEAPON_PICKUP (verified working)
+                            unsigned int audioEntityId = *(unsigned int*)((uintptr_t)playerCar + 0x64);
+                            PlayOneShot(audioEntityId, 148, 1.0f); // 148 = Checkpoint beep sample
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
