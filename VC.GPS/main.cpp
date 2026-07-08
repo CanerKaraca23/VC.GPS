@@ -532,7 +532,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            PlayFrontEndSound(6, 0);
+                            PlayFrontEndSound(101, 0);
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
