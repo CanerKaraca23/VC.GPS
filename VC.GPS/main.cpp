@@ -539,8 +539,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            unsigned int audioEntityId = *(unsigned int*)((uintptr_t)playerCar + 0x64);
-                            PlayOneShot(audioEntityId, 1058, 1.0f); // User requested sound ID 1058
+                            PlayFrontEndSound(197, 0); // 197 = WEAPON_PICKUP (verified working)
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
