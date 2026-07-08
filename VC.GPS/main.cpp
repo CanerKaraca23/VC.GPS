@@ -532,7 +532,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            PlayFrontEndSound(111, 0); // 111 = MENU_ENTER (user requested)
+                            PlayFrontEndSound(101, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
