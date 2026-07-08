@@ -548,7 +548,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 
 	for (RadarBlip *blip = gRadarBlips; blip != &gRadarBlips[75]; blip++)
 	{
-		if (blip->m_bActive && blip->m_wBlipSprite == 0) // RADAR_SPRITE_NONE
+		if (blip->m_bActive && blip->m_wBlipSprite == 0 && blip->m_wBlipDisplay > 1) // RADAR_SPRITE_NONE and visible on radar (BLIP_DISPLAY_BLIP_ONLY or BLIP_DISPLAY_BOTH)
 		{
 			if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
 			{
