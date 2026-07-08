@@ -532,7 +532,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            PlayFrontEndSound(101, 0);
+                            PlayFrontEndSound(105, 0); // 105 = BOMB_TIMING_TICK (short beep)
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
