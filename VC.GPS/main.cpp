@@ -373,7 +373,7 @@ void OnMenuDrawing(float x, float y, short *text)
     SetFontStyle(1);
     SetScale(0.20f * ((float)*gScreenWidth / 640.0f), 0.3f * ((float)*gScreenHeight / 448.0f));
     SetColor(&color);
-    SetDropShadowPosition(1);
+    SetDropShadowPosition(0);
     SetPropOn();
 
     short textUni[256];
