@@ -562,13 +562,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 	{
 		if (blip->m_bInUse && blip->m_nRadarSprite == RADAR_SPRITE_NONE)
 		{
-			if (blip->m_nBlipType == static_cast<unsigned int>(eBlipType::BLIP_COORD))
-			{
-				blipPos.x = blip->m_vecPos.x;
-				blipPos.y = blip->m_vecPos.y;
-				blipPos.z = blip->m_vecPos.z;
-			}
-			else if (blip->m_nBlipType > static_cast<unsigned int>(eBlipType::BLIP_NONE) && blip->m_nBlipType < static_cast<unsigned int>(eBlipType::BLIP_COORD))
+			if (blip->m_nBlipType > static_cast<unsigned int>(eBlipType::BLIP_NONE) && blip->m_nBlipType < static_cast<unsigned int>(eBlipType::BLIP_COORD))
 			{
 				CPlaceable *entity = nullptr;
 				switch (static_cast<eBlipType>(blip->m_nBlipType))
@@ -598,9 +592,15 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 				}
 				else continue;
 			}
+			else if (blip->m_nBlipType == static_cast<unsigned int>(eBlipType::BLIP_COORD))
+			{
+				blipPos.x = blip->m_vecPos.x;
+				blipPos.y = blip->m_vecPos.y;
+				blipPos.z = blip->m_vecPos.z;
+			}
 			else
 			{
-				continue; // Skip contact points, spotlights, pickups, airstrips, etc.
+				continue;
 			}
 
 			if (blipPos.x == 0.0f && blipPos.y == 0.0f)
