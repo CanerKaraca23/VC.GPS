@@ -532,7 +532,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     {
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
-                            PlayFrontEndSound(147, 0); // FRONTEND_RACE_BEEP_1
+                            PlayFrontEndSound(1, 0); // 1 = FRONTEND_MENU_NAVIGATE, 0 = 0 attenuation (max volume)
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
