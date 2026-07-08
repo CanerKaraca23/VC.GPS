@@ -198,6 +198,13 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
+void PlayFrontEndSound(unsigned short frontend, unsigned int volume = 0)
+{
+	void* audioManager = (void*)0xA10B8A;
+	void(__thiscall *pPlayFrontEndSound)(void*, unsigned short, unsigned int) = (void(__thiscall *)(void*, unsigned short, unsigned int))0x5F9960;
+	pPlayFrontEndSound(audioManager, frontend, volume);
+}
+
 void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
 void(__cdecl *PrintString)          (float x, float y, short *text);
 void(__cdecl *SetFontStyle)         (int style);
@@ -523,6 +530,10 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
                     if (distSq < 225.0f)
                     {
+                        if (*(int*)(*ppMenuNew + 0x18) != 0)
+                        {
+                            PlayFrontEndSound(147, 0); // FRONTEND_RACE_BEEP_1
+                        }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
                     else
