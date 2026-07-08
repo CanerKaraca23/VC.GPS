@@ -198,13 +198,6 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
-void PlayFrontEndSound(unsigned int frontend, unsigned int volume = 0)
-{
-	void* audioManager = (void*)0xA10B8A;
-	void(__thiscall *pPlayFrontEndSound)(void*, unsigned int, unsigned int) = (void(__thiscall *)(void*, unsigned int, unsigned int))0x5F9960;
-	pPlayFrontEndSound(audioManager, frontend, volume);
-}
-
 void PlayOneShot(int audioEntity, unsigned int shot, float volume = 1.0f)
 {
 	void* audioManager = (void*)0xA10B8A;
@@ -540,7 +533,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                         if (*(int*)(*ppMenuNew + 0x18) != 0)
                         {
                             unsigned int audioEntityId = *(unsigned int*)((uintptr_t)playerCar + 0x64);
-                            PlayOneShot(audioEntityId, 148, 1.0f); // 148 = Checkpoint beep sample
+                            PlayOneShot(audioEntityId, 104, 1.0f); // 104 = Weapon Pickup sample (verified working)
                         }
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
