@@ -203,13 +203,10 @@ constexpr unsigned short SOUND_WEAPON_PICKUP = 101;
 void PlayFrontEndSound(unsigned short soundId, unsigned int volume = 0)
 {
 	void* pAudioManager = injector::memory_pointer(0xA10B8A).get();
-	if (pAudioManager)
-	{
-		using PlayFrontEndSound_t = void(__thiscall *)(void*, unsigned short, unsigned int);
-		void* pFunc = injector::memory_pointer(0x5F9960).get();
-		auto pPlayFrontEndSound = reinterpret_cast<PlayFrontEndSound_t>(pFunc);
-		pPlayFrontEndSound(pAudioManager, soundId, volume);
-	}
+	using PlayFrontEndSound_t = void(__thiscall *)(void*, unsigned short, unsigned int);
+	void* pFunc = injector::memory_pointer(0x5F9960).get();
+	auto pPlayFrontEndSound = reinterpret_cast<PlayFrontEndSound_t>(pFunc);
+	pPlayFrontEndSound(pAudioManager, soundId, volume);
 }
 
 void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
@@ -542,8 +539,8 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
                     if (distSq < 225.0f)
                     {
-                        PlayFrontEndSound(SOUND_WEAPON_PICKUP, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
                         *(int*)(*ppMenuNew + 0x18) = 0;
+                        PlayFrontEndSound(SOUND_WEAPON_PICKUP, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
                     }
                     else
                     {
