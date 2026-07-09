@@ -220,7 +220,6 @@ inline void(*pfDrawInMenu)(float x, float y, short *text) = nullptr;
 
 using MenuMap_GetScreenCoords_t = void (*)(float, float, float*, float*);
 inline MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = nullptr;
-inline unsigned int gPathColor = 0;
 
 inline bool bCheckedMenuMap = false;
 inline std::uintptr_t* ppMenuNew = nullptr;
@@ -317,27 +316,25 @@ void DrawPathLineMask()
 
 void DrawLine(CVector2D const& a, CVector2D const& b, float width, unsigned int color)
 {
-    std::array<CVector2D, 4> point{};
-    std::array<CVector2D, 2> shift{};
-    width /= 2.0f;
-
     CVector2D dir{b.x - a.x, b.y - a.y};
-    float angle = std::atan2(dir.y, dir.x);
-    constexpr float half_pi = std::numbers::pi_v<float> / 2.0f;
+    float len = std::hypot(dir.x, dir.y);
+    if (len < 1e-6f) return;
 
-    shift[0].x = std::cos(angle - half_pi) * width;
-    shift[0].y = std::sin(angle - half_pi) * width;
-    shift[1].x = std::cos(angle + half_pi) * width;
-    shift[1].y = std::sin(angle + half_pi) * width;
+    width /= 2.0f;
+    float factor = width / len;
 
-    point[0].x = a.x + shift[1].x;
-    point[0].y = a.y + shift[1].y;
-    point[1].x = b.x + shift[1].x;
-    point[1].y = b.y + shift[1].y;
-    point[2].x = a.x + shift[0].x;
-    point[2].y = a.y + shift[0].y;
-    point[3].x = b.x + shift[0].x;
-    point[3].y = b.y + shift[0].y;
+    float dx = -dir.y * factor;
+    float dy = dir.x * factor;
+
+    std::array<CVector2D, 4> point{};
+    point[0].x = a.x + dx;
+    point[0].y = a.y + dy;
+    point[1].x = b.x + dx;
+    point[1].y = b.y + dy;
+    point[2].x = a.x - dx;
+    point[2].y = a.y - dy;
+    point[3].x = b.x - dx;
+    point[3].y = b.y - dy;
 
     float oldZ = RwIm2DGetNearScreenZ();
     RwIm2DSetNearScreenZ(oldZ + *gRadarMapZShift);
@@ -389,7 +386,6 @@ void DrawPathFindLineMenuMap()
 
     if (info.targetPoint && playerCar)
     {
-        gPathColor = info.color;
         if (*info.targetPoint != lastMenuTargetPos || playerCar->m_sCoords.m_sMatrix.pos != lastMenuPlayerPos)
         {
             lastMenuTargetPos = *info.targetPoint;
@@ -419,7 +415,7 @@ void DrawPathFindLineMenuMap()
         pMenuMap_GetScreenCoords(world1.x, world1.y, &screen1.x, &screen1.y);
         pMenuMap_GetScreenCoords(world2.x, world2.y, &screen2.x, &screen2.y);
 
-        DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 5.0f, gPathColor);
+        DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 5.0f, info.color);
     }
 }
 
@@ -581,7 +577,6 @@ void ProcessPathfind()
     if (playerCar)
     {
         GetPlaceInfo(&info);
-        gPathColor = info.color;
 
         if (info.targetPoint)
         {
