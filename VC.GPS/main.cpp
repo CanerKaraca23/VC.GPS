@@ -200,9 +200,12 @@ RadarBlip *gRadarBlips;
 
 void PlayFrontEndSound(unsigned int frontend, unsigned int volume = 0)
 {
-	void* audioManager = (void*)0xA10B8A;
-	void(__thiscall *pPlayFrontEndSound)(void*, unsigned int, unsigned int) = (void(__thiscall *)(void*, unsigned int, unsigned int))0x5F9960;
-	pPlayFrontEndSound(audioManager, frontend, volume);
+	void* audioManager = *(void**)0xA10B8A;
+	if (audioManager)
+	{
+		void(__thiscall *pPlayFrontEndSound)(void*, unsigned int, unsigned int) = (void(__thiscall *)(void*, unsigned int, unsigned int))0x5F9960;
+		pPlayFrontEndSound(audioManager, frontend, volume);
+	}
 }
 
 void(__cdecl *AsciiToUnicode)       (const char *ascii, short *pUni);
