@@ -420,6 +420,11 @@ uintptr_t* ppMenuNew = nullptr;
 CVector lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
 CVector lastMenuPlayerPos = {0.0f, 0.0f, 0.0f};
 
+template <typename T>
+inline T& MemRef(std::uintptr_t addr) {
+    return *reinterpret_cast<T*>(addr);
+}
+
 inline bool operator!=(const CVector& a, const CVector& b)
 {
 	return a.x != b.x || a.y != b.y || a.z != b.z;
@@ -513,7 +518,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
 						*(BYTE*)(i+19) == 0x0F && *(BYTE*)(i+20) == 0x84 &&
 						*(BYTE*)(i+25) == 0x83 && *(BYTE*)(i+26) == 0x78 && *(BYTE*)(i+27) == 0x18 && *(BYTE*)(i+28) == 0x00)
 					{
-						ppMenuNew = (uintptr_t*)(*(uintptr_t*)(i + 1));
+						ppMenuNew = MemRef<std::uintptr_t*>(i + 1);
 						break;
 					}
 				}
