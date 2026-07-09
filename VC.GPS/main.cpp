@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include <algorithm>
 #include "injector/injector.hpp"
 
 constexpr int MAX_POINTS = 500;
@@ -18,7 +19,7 @@ constexpr float LINE_WIDTH = 1400.0f;
 // Memory access templates
 template <typename T>
 [[nodiscard]] inline T& MemRef(std::uintptr_t address) noexcept {
-    return *reinterpret_cast<T*>(address);
+    return *static_cast<T*>(injector::memory_pointer(address).get());
 }
 
 template <typename T, typename P>
@@ -179,45 +180,47 @@ static_assert(sizeof(RadarBlip) == 0x38, "RadarBlip size mismatch");
 static_assert(sizeof(RwMatrix) == 0x40, "RwMatrix size mismatch");
 static_assert(sizeof(CMatrix) == 0x48, "CMatrix size mismatch");
 
-// Global Pointers & Functions Modernization (Eliminating GetMemoryAddresses)
-inline auto* const FindPlayerVehicle = reinterpret_cast<CVehicle*(__cdecl*)()>(0x4BC1E0);
-inline auto* const IsPlayerOnAMission = reinterpret_cast<bool(__cdecl*)()>(0x44FE30);
-inline auto* const DoPathSearch = reinterpret_cast<void(__thiscall*)(void*, unsigned char, CVector, int, CVector, CPathNode**, short*, short, CVehicle*, float*, float, int)>(0x439070);
-inline auto* const RwIm2DGetNearScreenZ = reinterpret_cast<float(__cdecl*)()>(0x649B80);
-inline auto* const RwRenderStateSet = reinterpret_cast<void(__cdecl*)(unsigned int, unsigned int)>(0x649BA0);
-inline auto* const RwD3D9SetRenderState = reinterpret_cast<int(__cdecl*)(unsigned int, unsigned int)>(0x6582A0);
-inline auto* const SetSpriteVertices = reinterpret_cast<void(__cdecl*)(float, float, float, float, float, float, float, float, unsigned int*, unsigned int*, unsigned int*, unsigned int*)>(0x5781C0);
-inline auto* const RwIm2DRenderPrimitive = reinterpret_cast<void(__cdecl*)(unsigned int, RwD3D9Vertex*, unsigned int)>(0x649C10);
-inline auto* const GetRadarTraceColour = reinterpret_cast<unsigned int(__cdecl*)(unsigned int, unsigned int)>(0x4C3050);
-inline auto* const VehicleGetAt = reinterpret_cast<CVehicle*(__thiscall*)(void*, unsigned int)>(0x451C70);
-inline auto* const PedGetAt = reinterpret_cast<CPed*(__thiscall*)(void*, unsigned int)>(0x451CB0);
-inline auto* const ObjectGetAt = reinterpret_cast<CObject*(__thiscall*)(void*, unsigned int)>(0x451C30);
-inline auto* const DrawRadarMap = reinterpret_cast<void(__cdecl*)()>(0x4C17C0);
-inline auto* const DrawRadarMask = reinterpret_cast<void(__cdecl*)()>(0x4C1A20);
-inline auto* const InitialiseRadar = reinterpret_cast<void(__cdecl*)()>(0x4C6200);
-
-inline void* const gPathfind = reinterpret_cast<void*>(0x9B6E5C);
-inline float* const gRadarMapZShift = reinterpret_cast<float*>(0x699530);
-inline RwD3D9Vertex* const gSpriteVertices = reinterpret_cast<RwD3D9Vertex*>(0x7D4040);
-inline int* const gScreenWidth = reinterpret_cast<int*>(0x9B48E4);
-inline int* const gScreenHeight = reinterpret_cast<int*>(0x9B48E8);
-inline void** const gVehiclePool = reinterpret_cast<void**>(0xA0FDE4);
-inline void** const gPedPool = reinterpret_cast<void**>(0x97F2AC);
-inline void** const gObjectPool = reinterpret_cast<void**>(0x94DBE0);
-inline unsigned int* const gRwEngine = reinterpret_cast<unsigned int*>(0x7870C0);
-inline float* const gRadarRange = reinterpret_cast<float*>(0x974BEC);
-inline RadarBlip* const gRadarBlips = reinterpret_cast<RadarBlip*>(0x7D7D38);
-
-inline auto* const AsciiToUnicode = reinterpret_cast<void(__cdecl*)(const char*, short*)>(0x552500);
-inline auto* const PrintString = reinterpret_cast<void(__cdecl*)(float, float, short*)>(0x551040);
-inline auto* const SetFontStyle = reinterpret_cast<void(__cdecl*)(int)>(0x54FFE0);
-inline auto* const SetScale = reinterpret_cast<void(__cdecl*)(float, float)>(0x550230);
-inline auto* const SetColor = reinterpret_cast<void(__cdecl*)(unsigned int*)>(0x550170);
-inline auto* const SetDropShadowPosition = reinterpret_cast<void(__cdecl*)(int)>(0x54FF20);
-inline auto* const SetPropOn = reinterpret_cast<void(__cdecl*)()>(0x550020);
-
 // Global State
 namespace {
+    // Game Functions
+    auto* const FindPlayerVehicle = reinterpret_cast<CVehicle*(__cdecl*)()>(injector::memory_pointer(0x4BC1E0).get());
+    auto* const IsPlayerOnAMission = reinterpret_cast<bool(__cdecl*)()>(injector::memory_pointer(0x44FE30).get());
+    auto* const DoPathSearch = reinterpret_cast<void(__thiscall*)(void*, unsigned char, CVector, int, CVector, CPathNode**, short*, short, CVehicle*, float*, float, int)>(injector::memory_pointer(0x439070).get());
+    auto* const RwIm2DGetNearScreenZ = reinterpret_cast<float(__cdecl*)()>(injector::memory_pointer(0x649B80).get());
+    auto* const RwRenderStateSet = reinterpret_cast<void(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x649BA0).get());
+    auto* const RwD3D9SetRenderState = reinterpret_cast<int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x6582A0).get());
+    auto* const SetSpriteVertices = reinterpret_cast<void(__cdecl*)(float, float, float, float, float, float, float, float, unsigned int*, unsigned int*, unsigned int*, unsigned int*)>(injector::memory_pointer(0x5781C0).get());
+    auto* const RwIm2DRenderPrimitive = reinterpret_cast<void(__cdecl*)(unsigned int, RwD3D9Vertex*, unsigned int)>(injector::memory_pointer(0x649C10).get());
+    auto* const GetRadarTraceColour = reinterpret_cast<unsigned int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x4C3050).get());
+    auto* const VehicleGetAt = reinterpret_cast<CVehicle*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C70).get());
+    auto* const PedGetAt = reinterpret_cast<CPed*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451CB0).get());
+    auto* const ObjectGetAt = reinterpret_cast<CObject*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C30).get());
+    auto* const DrawRadarMap = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C17C0).get());
+    auto* const DrawRadarMask = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C1A20).get());
+    auto* const InitialiseRadar = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C6200).get());
+
+    auto* const AsciiToUnicode = reinterpret_cast<void(__cdecl*)(const char*, short*)>(injector::memory_pointer(0x552500).get());
+    auto* const PrintString = reinterpret_cast<void(__cdecl*)(float, float, short*)>(injector::memory_pointer(0x551040).get());
+    auto* const SetFontStyle = reinterpret_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FFE0).get());
+    auto* const SetScale = reinterpret_cast<void(__cdecl*)(float, float)>(injector::memory_pointer(0x550230).get());
+    auto* const SetColor = reinterpret_cast<void(__cdecl*)(unsigned int*)>(injector::memory_pointer(0x550170).get());
+    auto* const SetDropShadowPosition = reinterpret_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FF20).get());
+    auto* const SetPropOn = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x550020).get());
+
+    // Game Pointers
+    void* const gPathfind = injector::memory_pointer(0x9B6E5C).get();
+    float* const gRadarMapZShift = static_cast<float*>(injector::memory_pointer(0x699530).get());
+    RwD3D9Vertex* const gSpriteVertices = static_cast<RwD3D9Vertex*>(injector::memory_pointer(0x7D4040).get());
+    int* const gScreenWidth = static_cast<int*>(injector::memory_pointer(0x9B48E4).get());
+    int* const gScreenHeight = static_cast<int*>(injector::memory_pointer(0x9B48E8).get());
+    void** const gVehiclePool = static_cast<void**>(injector::memory_pointer(0xA0FDE4).get());
+    void** const gPedPool = static_cast<void**>(injector::memory_pointer(0x97F2AC).get());
+    void** const gObjectPool = static_cast<void**>(injector::memory_pointer(0x94DBE0).get());
+    unsigned int* const gRwEngine = static_cast<unsigned int*>(injector::memory_pointer(0x7870C0).get());
+    float* const gRadarRange = static_cast<float*>(injector::memory_pointer(0x974BEC).get());
+    RadarBlip* const gRadarBlips = static_cast<RadarBlip*>(injector::memory_pointer(0x7D7D38).get());
+
+    // Plugin Variables
     std::array<CPathNode*, MAX_POINTS> gapPathNodes{};
     short gwPathNodesCount = 0;
     CVector gBlipBestPos{};
@@ -274,7 +277,7 @@ void TransformRealWorldPointToRadarSpace(CVector2D& a1, CVector2D const& a2)
 
 CVector* GetCamPos()
 {
-    return reinterpret_cast<CVector*>(0x7E4688 + 0x7D8);
+    return reinterpret_cast<CVector*>(reinterpret_cast<std::uintptr_t>(injector::memory_pointer(0x7E4688).get()) + 0x7D8);
 }
 
 void RwIm2DSetNearScreenZ(float z)
@@ -441,12 +444,6 @@ void DrawPathFindLineMenuMap()
 
 PathLineInfo* GetPlaceInfo(PathLineInfo* info)
 {
-    RadarBlip* bestBlip = nullptr;
-    CVector blipPos{0.0f, 0.0f, 0.0f};
-    float distance = 9999800001.99f;
-    float newDistance = 0.0f;
-    unsigned int color = 0;
-
     if (!bCheckedMenuMap)
     {
         HMODULE hMenuMap = GetModuleHandleA("MenuMapVC.asi");
@@ -462,20 +459,24 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
             MODULEINFO moduleInfo{};
             if (GetModuleInformation(GetCurrentProcess(), hMenuMap, &moduleInfo, sizeof(moduleInfo)))
             {
-                auto startAddress = reinterpret_cast<std::uintptr_t>(hMenuMap);
-                std::uintptr_t endAddress = startAddress + moduleInfo.SizeOfImage;
+                auto* const startAddress = reinterpret_cast<std::uint8_t*>(hMenuMap);
+                auto* const endAddress = startAddress + moduleInfo.SizeOfImage;
 
-                for (std::uintptr_t i = startAddress; i < endAddress - 30; i++)
+                constexpr std::array<std::pair<std::ptrdiff_t, std::uint8_t>, 16> pattern = {{
+                    {0, 0xA1}, {5, 0x83}, {6, 0xEC}, {8, 0x85}, {9, 0xC0},
+                    {10, 0x0F}, {11, 0x84}, {16, 0x83}, {17, 0x38}, {18, 0x00},
+                    {19, 0x0F}, {20, 0x84}, {25, 0x83}, {26, 0x78}, {27, 0x18}, {28, 0x00}
+                }};
+
+                for (auto* it = startAddress; it < endAddress - 30; ++it)
                 {
-                    if (MemRef<std::uint8_t>(i) == 0xA1 &&
-                        MemRef<std::uint8_t>(i+5) == 0x83 && MemRef<std::uint8_t>(i+6) == 0xEC &&
-                        MemRef<std::uint8_t>(i+8) == 0x85 && MemRef<std::uint8_t>(i+9) == 0xC0 &&
-                        MemRef<std::uint8_t>(i+10) == 0x0F && MemRef<std::uint8_t>(i+11) == 0x84 &&
-                        MemRef<std::uint8_t>(i+16) == 0x83 && MemRef<std::uint8_t>(i+17) == 0x38 && MemRef<std::uint8_t>(i+18) == 0x00 &&
-                        MemRef<std::uint8_t>(i+19) == 0x0F && MemRef<std::uint8_t>(i+20) == 0x84 &&
-                        MemRef<std::uint8_t>(i+25) == 0x83 && MemRef<std::uint8_t>(i+26) == 0x78 && MemRef<std::uint8_t>(i+27) == 0x18 && MemRef<std::uint8_t>(i+28) == 0x00)
+                    bool match = std::ranges::all_of(pattern, [it](const auto& pair) {
+                        return *(it + pair.first) == pair.second;
+                    });
+
+                    if (match)
                     {
-                        ppMenuNew = MemRef<std::uintptr_t*>(i + 1);
+                        ppMenuNew = *reinterpret_cast<std::uintptr_t**>(it + 1);
                         break;
                     }
                 }
@@ -486,7 +487,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
 
     if (ppMenuNew && *ppMenuNew)
     {
-        int targetBlipIndex = MemRef<int>(*ppMenuNew + 0x18);
+        int targetBlipIndex = MemRef<int>(reinterpret_cast<std::uint8_t*>(*ppMenuNew), 0x18);
         if (targetBlipIndex == 1)
         {
             auto* targetBlipWorldPos = reinterpret_cast<CVector*>(*ppMenuNew + 0x1C);
@@ -498,7 +499,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
                     if (distSq < 225.0f)
                     {
-                        MemRef<int>(*ppMenuNew + 0x18) = 0;
+                        MemRef<int>(reinterpret_cast<std::uint8_t*>(*ppMenuNew), 0x18) = 0;
                     }
                     else
                     {
@@ -518,11 +519,15 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
         return info;
     }
 
+    RadarBlip* bestBlip = nullptr;
+    CVector blipPos{0.0f, 0.0f, 0.0f};
+    float distance = 9999800001.99f;
+
     for (RadarBlip* blip = gRadarBlips; blip != &gRadarBlips[75]; ++blip)
     {
-        CPlaceable* entity = nullptr;
         if (blip->m_bActive && blip->m_wBlipSprite == 0 && blip->m_wBlipDisplay > 1)
         {
+            CPlaceable* entity = nullptr;
             if (blip->m_dwBlipType > 0 && blip->m_dwBlipType < 4)
             {
                 switch (static_cast<eBlipType>(blip->m_dwBlipType))
@@ -546,23 +551,19 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
                 }
                 if (entity)
                 {
-                    blipPos.x = entity->m_sCoords.m_sMatrix.pos.x;
-                    blipPos.y = entity->m_sCoords.m_sMatrix.pos.y;
-                    blipPos.z = entity->m_sCoords.m_sMatrix.pos.z;
+                    blipPos = entity->m_sCoords.m_sMatrix.pos;
                 }
                 else continue;
             }
             else
             {
-                blipPos.x = blip->m_vecCurPos.x;
-                blipPos.y = blip->m_vecCurPos.y;
-                blipPos.z = blip->m_vecCurPos.z;
+                blipPos = blip->m_vecCurPos;
             }
 
             if (blipPos.x == 0.0f && blipPos.y == 0.0f)
                 continue;
 
-            newDistance = GetSquaredDistanceBetweenPoints(blipPos, *GetCamPos());
+            float newDistance = GetSquaredDistanceBetweenPoints(blipPos, *GetCamPos());
             if (newDistance < distance)
             {
                 distance = newDistance;
@@ -571,9 +572,10 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
             }
         }
     }
+
     if (bestBlip)
     {
-        color = GetRadarTraceColour(bestBlip->m_dwBlipColour, bestBlip->m_bBlipBrightness);
+        unsigned int color = GetRadarTraceColour(bestBlip->m_dwBlipColour, bestBlip->m_bBlipBrightness);
         info->color = ((color >> 24) & 0xFF) |
                       (((color >> 16) & 0xFF) << 8) |
                       (((color >> 8) & 0xFF) << 16) |
