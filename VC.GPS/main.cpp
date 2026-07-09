@@ -458,7 +458,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
                         MemRef<std::uint8_t>(i+19) == 0x0F && MemRef<std::uint8_t>(i+20) == 0x84 &&
                         MemRef<std::uint8_t>(i+25) == 0x83 && MemRef<std::uint8_t>(i+26) == 0x78 && MemRef<std::uint8_t>(i+27) == 0x18 && MemRef<std::uint8_t>(i+28) == 0x00)
                     {
-                        ppMenuNew = reinterpret_cast<std::uintptr_t*>(static_cast<std::uintptr_t>(MemRef<std::uint32_t>(i + 1)));
+                        ppMenuNew = MemRef<std::uintptr_t*>(i + 1);
                         break;
                     }
                 }
