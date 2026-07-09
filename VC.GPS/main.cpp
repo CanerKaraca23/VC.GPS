@@ -259,7 +259,7 @@ void TransformRadarPointToScreenSpace(CVector2D& a1, CVector2D const& a2)
 
 void TransformRealWorldPointToRadarSpace(CVector2D& a1, CVector2D const& a2)
 {
-    float v9 = MemRef<float>(0x68FD40) / MemRef<float>(0x974BEC);
+    float v9 = MemRef<float>(0x68FD40) / *gRadarRange;
     float v10 = (a2.x - MemRef<float>(0x704734)) * v9;
     float v11 = (a2.y - MemRef<float>(0x704738)) * v9;
     a1.x = MemRef<float>(0x70483C) * v11 + MemRef<float>(0x704840) * v10;
@@ -344,7 +344,7 @@ void DrawLine(CVector2D const& a, CVector2D const& b, float width, unsigned int 
     RwIm2DRenderPrimitive(rwPRIMTYPETRIFAN, gSpriteVertices, 4);
 }
 
-void OnMenuDrawing(float x, float y, short* text)
+void __cdecl OnMenuDrawing(float x, float y, short* text)
 {
     if (pfDrawInMenu) pfDrawInMenu(x, y, text);
 
