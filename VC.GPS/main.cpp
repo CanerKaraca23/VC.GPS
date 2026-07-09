@@ -198,13 +198,16 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
-void PlayFrontEndSound(unsigned short frontend, unsigned int volume = 0)
+constexpr unsigned short SOUND_WEAPON_PICKUP = 101;
+
+void PlayFrontEndSound(unsigned short soundId, unsigned int volume = 0)
 {
-	void* audioManager = *(void**)0xA10B8A;
-	if (audioManager)
+	void** ppAudioManager = injector::memory_pointer(0xA10B8A).get();
+	if (ppAudioManager && *ppAudioManager)
 	{
-		void(__thiscall *pPlayFrontEndSound)(void*, unsigned short, unsigned int) = (void(__thiscall *)(void*, unsigned short, unsigned int))0x5F9960;
-		pPlayFrontEndSound(audioManager, frontend, volume);
+		using PlayFrontEndSound_t = void(__thiscall *)(void*, unsigned short, unsigned int);
+		auto pPlayFrontEndSound = reinterpret_cast<PlayFrontEndSound_t>(injector::memory_pointer(0x5F9960).get().get<void>());
+		pPlayFrontEndSound(*ppAudioManager, soundId, volume);
 	}
 }
 
@@ -533,7 +536,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
                     if (distSq < 225.0f)
                     {
-                        PlayFrontEndSound(101, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
+                        PlayFrontEndSound(SOUND_WEAPON_PICKUP, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
                     else
