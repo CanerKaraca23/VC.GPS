@@ -198,12 +198,12 @@ unsigned int *gRwEngine;
 float *gRadarRange;
 RadarBlip *gRadarBlips;
 
-void PlayFrontEndSound(unsigned int frontend, unsigned int volume = 0)
+void PlayFrontEndSound(unsigned short frontend, unsigned int volume = 0)
 {
 	void* audioManager = *(void**)0xA10B8A;
 	if (audioManager)
 	{
-		void(__thiscall *pPlayFrontEndSound)(void*, unsigned int, unsigned int) = (void(__thiscall *)(void*, unsigned int, unsigned int))0x5F9960;
+		void(__thiscall *pPlayFrontEndSound)(void*, unsigned short, unsigned int) = (void(__thiscall *)(void*, unsigned short, unsigned int))0x5F9960;
 		pPlayFrontEndSound(audioManager, frontend, volume);
 	}
 }
