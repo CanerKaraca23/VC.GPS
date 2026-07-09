@@ -1,7 +1,6 @@
 #include <windows.h>
 #include <psapi.h>
 #pragma comment(lib, "psapi.lib")
-#include <string>
 #include <cmath>
 #include <cstdint>
 #include <cstddef>
