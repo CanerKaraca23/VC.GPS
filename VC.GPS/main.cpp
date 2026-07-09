@@ -530,10 +530,7 @@ PathLineInfo *GetPlaceInfo(PathLineInfo *info)
                     float distSq = GetSquaredDistanceBetweenPoints(playerCar->m_sCoords.m_sMatrix.pos, *targetBlipWorldPos);
                     if (distSq < 225.0f)
                     {
-                        if (*(int*)(*ppMenuNew + 0x18) != 0)
-                        {
-                            PlayFrontEndSound(101, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
-                        }
+                        PlayFrontEndSound(101, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
                         *(int*)(*ppMenuNew + 0x18) = 0;
                     }
                     else
