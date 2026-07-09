@@ -202,12 +202,13 @@ constexpr unsigned short SOUND_WEAPON_PICKUP = 101;
 
 void PlayFrontEndSound(unsigned short soundId, unsigned int volume = 0)
 {
-	void** ppAudioManager = injector::memory_pointer(0xA10B8A).get<void*>();
-	if (ppAudioManager && *ppAudioManager)
+	void* pAudioManager = injector::memory_pointer(0xA10B8A).get();
+	if (pAudioManager)
 	{
 		using PlayFrontEndSound_t = void(__thiscall *)(void*, unsigned short, unsigned int);
-		auto pPlayFrontEndSound = reinterpret_cast<PlayFrontEndSound_t>(injector::memory_pointer(0x5F9960).get<void>());
-		pPlayFrontEndSound(*ppAudioManager, soundId, volume);
+		void* pFunc = injector::memory_pointer(0x5F9960).get();
+		auto pPlayFrontEndSound = reinterpret_cast<PlayFrontEndSound_t>(pFunc);
+		pPlayFrontEndSound(pAudioManager, soundId, volume);
 	}
 }
 
