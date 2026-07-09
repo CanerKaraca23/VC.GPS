@@ -177,7 +177,7 @@ static_assert(sizeof(CMatrix) == 0x48, "CMatrix size mismatch");
 
 // Global Pointers & Functions Modernization (Eliminating GetMemoryAddresses)
 inline auto* const FindPlayerVehicle = reinterpret_cast<CVehicle*(__cdecl*)()>(0x4BC1E0);
-inline auto* const IsPlayerOnAMission = reinterpret_cast<bool(*)()>(0x44FE30);
+inline auto* const IsPlayerOnAMission = reinterpret_cast<bool(__cdecl*)()>(0x44FE30);
 inline auto* const DoPathSearch = reinterpret_cast<void(__thiscall*)(void*, unsigned char, CVector, int, CVector, CPathNode**, short*, short, CVehicle*, float*, float, int)>(0x439070);
 inline auto* const RwIm2DGetNearScreenZ = reinterpret_cast<float(__cdecl*)()>(0x649B80);
 inline auto* const RwRenderStateSet = reinterpret_cast<void(__cdecl*)(unsigned int, unsigned int)>(0x649BA0);
@@ -216,7 +216,7 @@ inline auto* const SetPropOn = reinterpret_cast<void(__cdecl*)()>(0x550020);
 inline std::array<CPathNode*, MAX_POINTS> gapPathNodes{};
 inline short gwPathNodesCount = 0;
 inline CVector gBlipBestPos{};
-inline void(*pfDrawInMenu)(float x, float y, short *text) = nullptr;
+inline void(__cdecl *pfDrawInMenu)(float x, float y, short *text) = nullptr;
 
 using MenuMap_GetScreenCoords_t = void (*)(float, float, float*, float*);
 inline MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = nullptr;
