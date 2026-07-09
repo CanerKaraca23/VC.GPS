@@ -405,19 +405,32 @@ void DrawPathFindLineMenuMap()
 
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
 
+    CVector2D screen1{};
+    bool has_screen1 = false;
+
     const int count = gwPathNodesCount > MAX_POINTS ? MAX_POINTS : static_cast<int>(gwPathNodesCount);
     for (int i = 0; i < count - 1; i++)
     {
-        if (!gapPathNodes[i] || !gapPathNodes[i + 1]) continue;
+        if (!gapPathNodes[i] || !gapPathNodes[i + 1])
+        {
+            has_screen1 = false;
+            continue;
+        }
 
-        CVector2D world1{gapPathNodes[i]->m_v2dPoint.x * 0.125f, gapPathNodes[i]->m_v2dPoint.y * 0.125f};
+        if (!has_screen1)
+        {
+            CVector2D world1{gapPathNodes[i]->m_v2dPoint.x * 0.125f, gapPathNodes[i]->m_v2dPoint.y * 0.125f};
+            pMenuMap_GetScreenCoords(world1.x, world1.y, &screen1.x, &screen1.y);
+        }
+
         CVector2D world2{gapPathNodes[i + 1]->m_v2dPoint.x * 0.125f, gapPathNodes[i + 1]->m_v2dPoint.y * 0.125f};
-
-        CVector2D screen1{}, screen2{};
-        pMenuMap_GetScreenCoords(world1.x, world1.y, &screen1.x, &screen1.y);
+        CVector2D screen2{};
         pMenuMap_GetScreenCoords(world2.x, world2.y, &screen2.x, &screen2.y);
 
         DrawLine(screen1, screen2, (LINE_WIDTH / (*gRadarRange)) * 5.0f, info.color);
+
+        screen1 = screen2;
+        has_screen1 = true;
     }
 }
 
@@ -586,16 +599,26 @@ void ProcessPathfind()
             if (gwPathNodesCount > 1)
             {
                 RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
+                CVector2D radar1{};
+                bool has_radar1 = false;
+
                 const int count = gwPathNodesCount > MAX_POINTS ? MAX_POINTS : static_cast<int>(gwPathNodesCount);
                 for (int i = 0; i < count - 1; i++)
                 {
-                    if (!gapPathNodes[i] || !gapPathNodes[i + 1]) continue;
+                    if (!gapPathNodes[i] || !gapPathNodes[i + 1])
+                    {
+                        has_radar1 = false;
+                        continue;
+                    }
 
-                    CVector2D temp{gapPathNodes[i]->m_v2dPoint.x * 0.125f, gapPathNodes[i]->m_v2dPoint.y * 0.125f};
+                    if (!has_radar1)
+                    {
+                        CVector2D temp{gapPathNodes[i]->m_v2dPoint.x * 0.125f, gapPathNodes[i]->m_v2dPoint.y * 0.125f};
+                        TransformRealWorldPointToRadarSpace(radar1, temp);
+                    }
+
                     CVector2D temp2{gapPathNodes[i + 1]->m_v2dPoint.x * 0.125f, gapPathNodes[i + 1]->m_v2dPoint.y * 0.125f};
-
-                    CVector2D radar1{}, radar2{};
-                    TransformRealWorldPointToRadarSpace(radar1, temp);
+                    CVector2D radar2{};
                     TransformRealWorldPointToRadarSpace(radar2, temp2);
 
                     if (IsLineInsideRadar(radar1, radar2))
@@ -605,6 +628,9 @@ void ProcessPathfind()
                         TransformRadarPointToScreenSpace(screen2, radar2);
                         DrawLine(screen1, screen2, LINE_WIDTH / (*gRadarRange), info.color);
                     }
+
+                    radar1 = radar2;
+                    has_radar1 = true;
                 }
             }
         }
