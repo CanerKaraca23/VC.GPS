@@ -19,7 +19,7 @@ constexpr float LINE_WIDTH = 1400.0f;
 // Memory access templates
 template <typename T>
 [[nodiscard]] inline T& MemRef(std::uintptr_t address) noexcept {
-    return *static_cast<T*>(injector::memory_pointer(address).get());
+    return *reinterpret_cast<T*>(injector::memory_pointer(address).get_raw());
 }
 
 template <typename T, typename P>
@@ -183,42 +183,42 @@ static_assert(sizeof(CMatrix) == 0x48, "CMatrix size mismatch");
 // Global State
 namespace {
     // Game Functions
-    auto* const FindPlayerVehicle = reinterpret_cast<CVehicle*(__cdecl*)()>(injector::memory_pointer(0x4BC1E0).get());
-    auto* const IsPlayerOnAMission = reinterpret_cast<bool(__cdecl*)()>(injector::memory_pointer(0x44FE30).get());
-    auto* const DoPathSearch = reinterpret_cast<void(__thiscall*)(void*, unsigned char, CVector, int, CVector, CPathNode**, short*, short, CVehicle*, float*, float, int)>(injector::memory_pointer(0x439070).get());
-    auto* const RwIm2DGetNearScreenZ = reinterpret_cast<float(__cdecl*)()>(injector::memory_pointer(0x649B80).get());
-    auto* const RwRenderStateSet = reinterpret_cast<void(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x649BA0).get());
-    auto* const RwD3D9SetRenderState = reinterpret_cast<int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x6582A0).get());
-    auto* const SetSpriteVertices = reinterpret_cast<void(__cdecl*)(float, float, float, float, float, float, float, float, unsigned int*, unsigned int*, unsigned int*, unsigned int*)>(injector::memory_pointer(0x5781C0).get());
-    auto* const RwIm2DRenderPrimitive = reinterpret_cast<void(__cdecl*)(unsigned int, RwD3D9Vertex*, unsigned int)>(injector::memory_pointer(0x649C10).get());
-    auto* const GetRadarTraceColour = reinterpret_cast<unsigned int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x4C3050).get());
-    auto* const VehicleGetAt = reinterpret_cast<CVehicle*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C70).get());
-    auto* const PedGetAt = reinterpret_cast<CPed*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451CB0).get());
-    auto* const ObjectGetAt = reinterpret_cast<CObject*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C30).get());
-    auto* const DrawRadarMap = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C17C0).get());
-    auto* const DrawRadarMask = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C1A20).get());
-    auto* const InitialiseRadar = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C6200).get());
+    auto* const FindPlayerVehicle = reinterpret_cast<CVehicle*(__cdecl*)()>(injector::memory_pointer(0x4BC1E0).get_raw());
+    auto* const IsPlayerOnAMission = reinterpret_cast<bool(__cdecl*)()>(injector::memory_pointer(0x44FE30).get_raw());
+    auto* const DoPathSearch = reinterpret_cast<void(__thiscall*)(void*, unsigned char, CVector, int, CVector, CPathNode**, short*, short, CVehicle*, float*, float, int)>(injector::memory_pointer(0x439070).get_raw());
+    auto* const RwIm2DGetNearScreenZ = reinterpret_cast<float(__cdecl*)()>(injector::memory_pointer(0x649B80).get_raw());
+    auto* const RwRenderStateSet = reinterpret_cast<void(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x649BA0).get_raw());
+    auto* const RwD3D9SetRenderState = reinterpret_cast<int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x6582A0).get_raw());
+    auto* const SetSpriteVertices = reinterpret_cast<void(__cdecl*)(float, float, float, float, float, float, float, float, unsigned int*, unsigned int*, unsigned int*, unsigned int*)>(injector::memory_pointer(0x5781C0).get_raw());
+    auto* const RwIm2DRenderPrimitive = reinterpret_cast<void(__cdecl*)(unsigned int, RwD3D9Vertex*, unsigned int)>(injector::memory_pointer(0x649C10).get_raw());
+    auto* const GetRadarTraceColour = reinterpret_cast<unsigned int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x4C3050).get_raw());
+    auto* const VehicleGetAt = reinterpret_cast<CVehicle*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C70).get_raw());
+    auto* const PedGetAt = reinterpret_cast<CPed*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451CB0).get_raw());
+    auto* const ObjectGetAt = reinterpret_cast<CObject*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C30).get_raw());
+    auto* const DrawRadarMap = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C17C0).get_raw());
+    auto* const DrawRadarMask = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C1A20).get_raw());
+    auto* const InitialiseRadar = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C6200).get_raw());
 
-    auto* const AsciiToUnicode = reinterpret_cast<void(__cdecl*)(const char*, short*)>(injector::memory_pointer(0x552500).get());
-    auto* const PrintString = reinterpret_cast<void(__cdecl*)(float, float, short*)>(injector::memory_pointer(0x551040).get());
-    auto* const SetFontStyle = reinterpret_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FFE0).get());
-    auto* const SetScale = reinterpret_cast<void(__cdecl*)(float, float)>(injector::memory_pointer(0x550230).get());
-    auto* const SetColor = reinterpret_cast<void(__cdecl*)(unsigned int*)>(injector::memory_pointer(0x550170).get());
-    auto* const SetDropShadowPosition = reinterpret_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FF20).get());
-    auto* const SetPropOn = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x550020).get());
+    auto* const AsciiToUnicode = reinterpret_cast<void(__cdecl*)(const char*, short*)>(injector::memory_pointer(0x552500).get_raw());
+    auto* const PrintString = reinterpret_cast<void(__cdecl*)(float, float, short*)>(injector::memory_pointer(0x551040).get_raw());
+    auto* const SetFontStyle = reinterpret_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FFE0).get_raw());
+    auto* const SetScale = reinterpret_cast<void(__cdecl*)(float, float)>(injector::memory_pointer(0x550230).get_raw());
+    auto* const SetColor = reinterpret_cast<void(__cdecl*)(unsigned int*)>(injector::memory_pointer(0x550170).get_raw());
+    auto* const SetDropShadowPosition = reinterpret_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FF20).get_raw());
+    auto* const SetPropOn = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x550020).get_raw());
 
     // Game Pointers
-    void* const gPathfind = injector::memory_pointer(0x9B6E5C).get();
-    float* const gRadarMapZShift = static_cast<float*>(injector::memory_pointer(0x699530).get());
-    RwD3D9Vertex* const gSpriteVertices = static_cast<RwD3D9Vertex*>(injector::memory_pointer(0x7D4040).get());
-    int* const gScreenWidth = static_cast<int*>(injector::memory_pointer(0x9B48E4).get());
-    int* const gScreenHeight = static_cast<int*>(injector::memory_pointer(0x9B48E8).get());
-    void** const gVehiclePool = static_cast<void**>(injector::memory_pointer(0xA0FDE4).get());
-    void** const gPedPool = static_cast<void**>(injector::memory_pointer(0x97F2AC).get());
-    void** const gObjectPool = static_cast<void**>(injector::memory_pointer(0x94DBE0).get());
-    unsigned int* const gRwEngine = static_cast<unsigned int*>(injector::memory_pointer(0x7870C0).get());
-    float* const gRadarRange = static_cast<float*>(injector::memory_pointer(0x974BEC).get());
-    RadarBlip* const gRadarBlips = static_cast<RadarBlip*>(injector::memory_pointer(0x7D7D38).get());
+    void* const gPathfind = injector::memory_pointer(0x9B6E5C).get_raw();
+    float* const gRadarMapZShift = reinterpret_cast<float*>(injector::memory_pointer(0x699530).get_raw());
+    RwD3D9Vertex* const gSpriteVertices = reinterpret_cast<RwD3D9Vertex*>(injector::memory_pointer(0x7D4040).get_raw());
+    int* const gScreenWidth = reinterpret_cast<int*>(injector::memory_pointer(0x9B48E4).get_raw());
+    int* const gScreenHeight = reinterpret_cast<int*>(injector::memory_pointer(0x9B48E8).get_raw());
+    void** const gVehiclePool = reinterpret_cast<void**>(injector::memory_pointer(0xA0FDE4).get_raw());
+    void** const gPedPool = reinterpret_cast<void**>(injector::memory_pointer(0x97F2AC).get_raw());
+    void** const gObjectPool = reinterpret_cast<void**>(injector::memory_pointer(0x94DBE0).get_raw());
+    unsigned int* const gRwEngine = reinterpret_cast<unsigned int*>(injector::memory_pointer(0x7870C0).get_raw());
+    float* const gRadarRange = reinterpret_cast<float*>(injector::memory_pointer(0x974BEC).get_raw());
+    RadarBlip* const gRadarBlips = reinterpret_cast<RadarBlip*>(injector::memory_pointer(0x7D7D38).get_raw());
 
     // Plugin Variables
     std::array<CPathNode*, MAX_POINTS> gapPathNodes{};
