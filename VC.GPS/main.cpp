@@ -381,6 +381,17 @@ void Init()
     pfDrawInMenu = injector::MakeCALL(0x49E3D9, OnMenuDrawing).get<void __cdecl(float, float, short*)>();
 }
 
+constexpr unsigned short SOUND_WEAPON_PICKUP = 101;
+
+void PlayFrontEndSound(unsigned short soundId, unsigned int volume = 0)
+{
+    void* pAudioManager = injector::memory_pointer(0xA10B8A).get();
+    using PlayFrontEndSound_t = void(__thiscall *)(void*, unsigned short, unsigned int);
+    void* pFunc = injector::memory_pointer(0x5F9960).get();
+    auto pPlayFrontEndSound = reinterpret_cast<PlayFrontEndSound_t>(pFunc);
+    pPlayFrontEndSound(pAudioManager, soundId, volume);
+}
+
 void DrawPathFindLineMenuMap()
 {
     if (!pMenuMap_GetScreenCoords) return;
@@ -499,6 +510,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
                     if (distSq < 225.0f)
                     {
                         MemRef<int>(*ppMenuNew + 0x18) = 0;
+                        PlayFrontEndSound(SOUND_WEAPON_PICKUP, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
                     }
                     else
                     {
