@@ -87,11 +87,11 @@ using CVector2D = RwV2d;
 
 // Inline concrete functions replacing macros
 [[nodiscard]] inline bool IsPedInCar(CPed* ped) noexcept {
-    return *reinterpret_cast<std::uint8_t*>(reinterpret_cast<std::uintptr_t>(ped) + 0x3AC);
+    return ped && MemRef<std::uint8_t>(reinterpret_cast<std::uintptr_t>(ped) + 0x3AC);
 }
 
 [[nodiscard]] inline CVehicle* GetPedCar(CPed* ped) noexcept {
-    return *reinterpret_cast<CVehicle**>(reinterpret_cast<std::uintptr_t>(ped) + 0x3A8);
+    return ped ? MemRef<CVehicle*>(reinterpret_cast<std::uintptr_t>(ped) + 0x3A8) : nullptr;
 }
 
 
@@ -274,7 +274,7 @@ CVector* GetCamPos()
 
 void RwIm2DSetNearScreenZ(float z)
 {
-    *reinterpret_cast<float*>(*gRwEngine + 0x18) = z;
+    MemRef<float>(*gRwEngine + 0x18) = z;
 }
 
 float GetSquaredDistanceBetweenPoints(CVector const& a, CVector const& b)
@@ -410,6 +410,8 @@ void DrawPathFindLineMenuMap()
 
     for (int i = 0; i < static_cast<int>(gwPathNodesCount - 1); i++)
     {
+        if (!gapPathNodes[i] || !gapPathNodes[i + 1]) continue;
+
         CVector2D world1{gapPathNodes[i]->m_v2dPoint.x * 0.125f, gapPathNodes[i]->m_v2dPoint.y * 0.125f};
         CVector2D world2{gapPathNodes[i + 1]->m_v2dPoint.x * 0.125f, gapPathNodes[i + 1]->m_v2dPoint.y * 0.125f};
 
@@ -458,7 +460,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
                         MemRef<std::uint8_t>(i+19) == 0x0F && MemRef<std::uint8_t>(i+20) == 0x84 &&
                         MemRef<std::uint8_t>(i+25) == 0x83 && MemRef<std::uint8_t>(i+26) == 0x78 && MemRef<std::uint8_t>(i+27) == 0x18 && MemRef<std::uint8_t>(i+28) == 0x00)
                     {
-                        ppMenuNew = reinterpret_cast<std::uintptr_t*>(MemRef<std::uintptr_t>(i + 1));
+                        ppMenuNew = reinterpret_cast<std::uintptr_t*>(static_cast<std::uintptr_t>(MemRef<std::uint32_t>(i + 1)));
                         break;
                     }
                 }
@@ -589,6 +591,8 @@ void ProcessPathfind()
                 RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
                 for (int i = 0; i < static_cast<int>(gwPathNodesCount - 1); i++)
                 {
+                    if (!gapPathNodes[i] || !gapPathNodes[i + 1]) continue;
+
                     CVector2D temp{gapPathNodes[i]->m_v2dPoint.x * 0.125f, gapPathNodes[i]->m_v2dPoint.y * 0.125f};
                     CVector2D temp2{gapPathNodes[i + 1]->m_v2dPoint.x * 0.125f, gapPathNodes[i + 1]->m_v2dPoint.y * 0.125f};
 
