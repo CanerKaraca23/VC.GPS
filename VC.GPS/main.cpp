@@ -23,6 +23,7 @@ template <typename T>
 }
 
 
+#pragma pack(push, 1)
 struct RwV2d
 {
     float x;
@@ -35,9 +36,7 @@ struct RwV3d
     float y;
     float z;
 
-    inline bool operator!=(const RwV3d& other) const noexcept {
-        return x != other.x || y != other.y || z != other.z;
-    }
+    bool operator==(const RwV3d&) const noexcept = default;
 };
 
 struct RwD3D9Vertex
@@ -168,6 +167,7 @@ struct PathLineInfo
     };
     unsigned int color;
 };
+#pragma pack(pop)
 
 // Compile-time checks for struct sizes
 static_assert(sizeof(CPathNode) == 0x14, "CPathNode size mismatch");
@@ -375,7 +375,7 @@ void Init()
     injector::MakeCALL(0x4A4896, InitialiseRadar);
     injector::MakeNOP(0x4C1D49, 5);
 
-    pfDrawInMenu = reinterpret_cast<void(__cdecl *)(float, float, short *)>(injector::MakeCALL(0x49E3D9, OnMenuDrawing).get_raw<void*>());
+    pfDrawInMenu = injector::MakeCALL(0x49E3D9, OnMenuDrawing).get<void __cdecl(float, float, short*)>();
 }
 
 void DrawPathFindLineMenuMap()
