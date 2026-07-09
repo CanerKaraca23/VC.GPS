@@ -22,15 +22,6 @@ template <typename T>
     return *reinterpret_cast<T*>(address);
 }
 
-// Inline templates replacing macros
-[[nodiscard]] inline bool IsPedInCar(CPed* ped) noexcept {
-    return *reinterpret_cast<std::uint8_t*>(reinterpret_cast<std::uintptr_t>(ped) + 0x3AC);
-}
-
-[[nodiscard]] inline CVehicle* GetPedCar(CPed* ped) noexcept {
-    return *reinterpret_cast<CVehicle**>(reinterpret_cast<std::uintptr_t>(ped) + 0x3A8);
-}
-
 
 struct RwV2d
 {
@@ -93,6 +84,17 @@ using CPed = CPlaceable;
 using CObject = CPlaceable;
 using CVector = RwV3d;
 using CVector2D = RwV2d;
+
+// Inline concrete functions replacing macros
+[[nodiscard]] inline bool IsPedInCar(CPed* ped) noexcept {
+    return *reinterpret_cast<std::uint8_t*>(reinterpret_cast<std::uintptr_t>(ped) + 0x3AC);
+}
+
+[[nodiscard]] inline CVehicle* GetPedCar(CPed* ped) noexcept {
+    return *reinterpret_cast<CVehicle**>(reinterpret_cast<std::uintptr_t>(ped) + 0x3A8);
+}
+
+
 
 enum class ePathNodeType
 {
@@ -373,7 +375,7 @@ void Init()
     injector::MakeCALL(0x4A4896, InitialiseRadar);
     injector::MakeNOP(0x4C1D49, 5);
 
-    pfDrawInMenu = reinterpret_cast<void(__cdecl *)(float, float, short *)>(injector::MakeCALL(0x49E3D9, OnMenuDrawing).get_raw<void>());
+    pfDrawInMenu = reinterpret_cast<void(__cdecl *)(float, float, short *)>(injector::MakeCALL(0x49E3D9, OnMenuDrawing).get_raw<void*>());
 }
 
 void DrawPathFindLineMenuMap()
@@ -557,7 +559,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
         info->color = ((color >> 24) & 0xFF) |
                       (((color >> 16) & 0xFF) << 8) |
                       (((color >> 8) & 0xFF) << 16) |
-                      (255 << 24);
+                      (255u << 24);
         info->targetPoint = &gBlipBestPos;
     }
     else
