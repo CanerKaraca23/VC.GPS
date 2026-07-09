@@ -317,7 +317,7 @@ void DrawPathLineMask()
 void DrawLine(CVector2D const& a, CVector2D const& b, float width, unsigned int color)
 {
     CVector2D dir{b.x - a.x, b.y - a.y};
-    float len = std::hypot(dir.x, dir.y);
+    float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
     if (len < 1e-6f) return;
 
     width /= 2.0f;
@@ -404,7 +404,8 @@ void DrawPathFindLineMenuMap()
 
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
 
-    for (int i = 0; i < static_cast<int>(gwPathNodesCount - 1); i++)
+    const int count = gwPathNodesCount > MAX_POINTS ? MAX_POINTS : static_cast<int>(gwPathNodesCount);
+    for (int i = 0; i < count - 1; i++)
     {
         if (!gapPathNodes[i] || !gapPathNodes[i + 1]) continue;
 
@@ -584,7 +585,8 @@ void ProcessPathfind()
             if (gwPathNodesCount > 1)
             {
                 RwRenderStateSet(rwRENDERSTATETEXTURERASTER, 0);
-                for (int i = 0; i < static_cast<int>(gwPathNodesCount - 1); i++)
+                const int count = gwPathNodesCount > MAX_POINTS ? MAX_POINTS : static_cast<int>(gwPathNodesCount);
+                for (int i = 0; i < count - 1; i++)
                 {
                     if (!gapPathNodes[i] || !gapPathNodes[i + 1]) continue;
 
