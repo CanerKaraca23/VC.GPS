@@ -386,8 +386,10 @@ constexpr unsigned short SOUND_WEAPON_PICKUP = 101;
 void PlayFrontEndSound(unsigned short soundId, unsigned int volume = 0)
 {
     void* pAudioManager = injector::memory_pointer(0xA10B8A).get();
-    using PlayFrontEndSound_t = void(__thiscall *)(void*, unsigned short, unsigned int);
     void* pFunc = injector::memory_pointer(0x5F9960).get();
+    if (!pAudioManager || !pFunc) return;
+
+    using PlayFrontEndSound_t = void(__thiscall *)(void*, unsigned short, unsigned int);
     auto pPlayFrontEndSound = reinterpret_cast<PlayFrontEndSound_t>(pFunc);
     pPlayFrontEndSound(pAudioManager, soundId, volume);
 }
@@ -510,7 +512,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
                     if (distSq < 225.0f)
                     {
                         MemRef<int>(*ppMenuNew + 0x18) = 0;
-                        PlayFrontEndSound(SOUND_WEAPON_PICKUP, 0); // 101 = WEAPON_PICKUP in VC (Verified working)
+                        PlayFrontEndSound(SOUND_WEAPON_PICKUP); // 101 = WEAPON_PICKUP in VC (Verified working)
                     }
                     else
                     {
