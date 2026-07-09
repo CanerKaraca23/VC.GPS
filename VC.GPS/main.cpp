@@ -23,20 +23,14 @@ template <typename T>
 }
 
 // Inline templates replacing macros
-template <typename T>
-[[nodiscard]] inline bool IsPedInCar(T* ped) noexcept {
+[[nodiscard]] inline bool IsPedInCar(CPed* ped) noexcept {
     return *reinterpret_cast<std::uint8_t*>(reinterpret_cast<std::uintptr_t>(ped) + 0x3AC);
 }
 
-template <typename T>
-[[nodiscard]] inline T* GetPedCar(T* ped) noexcept {
-    return *reinterpret_cast<T**>(reinterpret_cast<std::uintptr_t>(ped) + 0x3A8);
+[[nodiscard]] inline CVehicle* GetPedCar(CPed* ped) noexcept {
+    return *reinterpret_cast<CVehicle**>(reinterpret_cast<std::uintptr_t>(ped) + 0x3A8);
 }
 
-template <typename T>
-[[nodiscard]] inline std::uint8_t& ByteN(T& x, std::size_t n) noexcept {
-    return *(reinterpret_cast<std::uint8_t*>(&x) + n);
-}
 
 struct RwV2d
 {
@@ -355,11 +349,7 @@ void OnMenuDrawing(float x, float y, short* text)
 {
     if (pfDrawInMenu) pfDrawInMenu(x, y, text);
 
-    unsigned int color = 0;
-    ByteN(color, 0) = 255;
-    ByteN(color, 1) = 77;
-    ByteN(color, 2) = 210;
-    ByteN(color, 3) = 255;
+    unsigned int color = 0xFFD24DFF;
 
     SetFontStyle(1);
     SetScale(0.20f * (static_cast<float>(*gScreenWidth) / 640.0f), 0.3f * (static_cast<float>(*gScreenHeight) / 448.0f));
@@ -493,10 +483,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
                     }
                     else
                     {
-                        ByteN(info->color, 0) = 255;
-                        ByteN(info->color, 1) = 77;
-                        ByteN(info->color, 2) = 210;
-                        ByteN(info->color, 3) = 255;
+                        info->color = 0xFFD24DFF;
                         info->targetPoint = targetBlipWorldPos;
                         return info;
                     }
@@ -529,7 +516,7 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
                     {
                         entity = PedGetAt(*gPedPool, blip->m_dwEntityHandle);
                         if (entity && IsPedInCar(entity))
-                            entity = GetPedCar<CVehicle>(entity);
+                            entity = GetPedCar(entity);
                     }
                     break;
                 case eBlipType::BLIP_OBJECT:
@@ -567,10 +554,10 @@ PathLineInfo* GetPlaceInfo(PathLineInfo* info)
     if (bestBlip)
     {
         color = GetRadarTraceColour(bestBlip->m_dwBlipColour, bestBlip->m_bBlipBrightness);
-        ByteN(info->color, 0) = ByteN(color, 3);
-        ByteN(info->color, 1) = ByteN(color, 2);
-        ByteN(info->color, 2) = ByteN(color, 1);
-        ByteN(info->color, 3) = 255;
+        info->color = ((color >> 24) & 0xFF) |
+                      (((color >> 16) & 0xFF) << 8) |
+                      (((color >> 8) & 0xFF) << 16) |
+                      (255 << 24);
         info->targetPoint = &gBlipBestPos;
     }
     else
