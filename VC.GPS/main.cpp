@@ -5,7 +5,6 @@
 #include <cmath>
 #include <cstdint>
 #include <array>
-#include <numbers>
 #include "injector/injector.hpp"
 
 constexpr int MAX_POINTS = 500;
@@ -213,18 +212,20 @@ inline auto* const SetDropShadowPosition = reinterpret_cast<void(__cdecl*)(int)>
 inline auto* const SetPropOn = reinterpret_cast<void(__cdecl*)()>(0x550020);
 
 // Global State
-inline std::array<CPathNode*, MAX_POINTS> gapPathNodes{};
-inline short gwPathNodesCount = 0;
-inline CVector gBlipBestPos{};
-inline void(__cdecl *pfDrawInMenu)(float x, float y, short *text) = nullptr;
+namespace {
+    std::array<CPathNode*, MAX_POINTS> gapPathNodes{};
+    short gwPathNodesCount = 0;
+    CVector gBlipBestPos{};
+    void(__cdecl *pfDrawInMenu)(float x, float y, short *text) = nullptr;
 
-using MenuMap_GetScreenCoords_t = void (*)(float, float, float*, float*);
-inline MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = nullptr;
+    using MenuMap_GetScreenCoords_t = void (*)(float, float, float*, float*);
+    MenuMap_GetScreenCoords_t pMenuMap_GetScreenCoords = nullptr;
 
-inline bool bCheckedMenuMap = false;
-inline std::uintptr_t* ppMenuNew = nullptr;
-inline CVector lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
-inline CVector lastMenuPlayerPos = {0.0f, 0.0f, 0.0f};
+    bool bCheckedMenuMap = false;
+    std::uintptr_t* ppMenuNew = nullptr;
+    CVector lastMenuTargetPos = {0.0f, 0.0f, 0.0f};
+    CVector lastMenuPlayerPos = {0.0f, 0.0f, 0.0f};
+}
 
 // Forward Declarations
 void DrawLine(CVector2D const& a, CVector2D const& b, float width, unsigned int color);
