@@ -4,6 +4,7 @@
 #include <string>
 #include <cmath>
 #include <cstdint>
+#include <cstddef>
 #include <array>
 #include "injector/injector.hpp"
 
@@ -19,6 +20,11 @@ constexpr float LINE_WIDTH = 1400.0f;
 template <typename T>
 [[nodiscard]] inline T& MemRef(std::uintptr_t address) noexcept {
     return *reinterpret_cast<T*>(address);
+}
+
+template <typename T, typename P>
+[[nodiscard]] inline T& MemRef(P* ptr, std::ptrdiff_t offset) noexcept {
+    return *reinterpret_cast<T*>(reinterpret_cast<std::uintptr_t>(ptr) + offset);
 }
 
 
@@ -85,11 +91,11 @@ using CVector2D = RwV2d;
 
 // Inline concrete functions replacing macros
 [[nodiscard]] inline bool IsPedInCar(CPed* ped) noexcept {
-    return ped && MemRef<std::uint8_t>(reinterpret_cast<std::uintptr_t>(ped) + 0x3AC);
+    return ped && MemRef<std::uint8_t>(ped, 0x3AC);
 }
 
 [[nodiscard]] inline CVehicle* GetPedCar(CPed* ped) noexcept {
-    return ped ? MemRef<CVehicle*>(reinterpret_cast<std::uintptr_t>(ped) + 0x3A8) : nullptr;
+    return ped ? MemRef<CVehicle*>(ped, 0x3A8) : nullptr;
 }
 
 
