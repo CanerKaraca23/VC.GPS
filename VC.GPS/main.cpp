@@ -180,21 +180,21 @@ static_assert(sizeof(CMatrix) == 0x48, "CMatrix size mismatch");
 
 // Global Pointers, Functions & State Encapsulation
 namespace {
-    auto* const FindPlayerVehicle = reinterpret_cast<CVehicle*(__cdecl*)()>(injector::memory_pointer(0x4BC1E0).get());
-    auto* const IsPlayerOnAMission = reinterpret_cast<bool(__cdecl*)()>(injector::memory_pointer(0x44FE30).get());
-    auto* const DoPathSearch = reinterpret_cast<void(__thiscall*)(void*, unsigned char, CVector, int, CVector, CPathNode**, short*, short, CVehicle*, float*, float, int)>(injector::memory_pointer(0x439070).get());
-    auto* const RwIm2DGetNearScreenZ = reinterpret_cast<float(__cdecl*)()>(injector::memory_pointer(0x649B80).get());
-    auto* const RwRenderStateSet = reinterpret_cast<void(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x649BA0).get());
-    auto* const RwD3D9SetRenderState = reinterpret_cast<int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x6582A0).get());
-    auto* const SetSpriteVertices = reinterpret_cast<void(__cdecl*)(float, float, float, float, float, float, float, float, unsigned int*, unsigned int*, unsigned int*, unsigned int*)>(injector::memory_pointer(0x5781C0).get());
-    auto* const RwIm2DRenderPrimitive = reinterpret_cast<void(__cdecl*)(unsigned int, RwD3D9Vertex*, unsigned int)>(injector::memory_pointer(0x649C10).get());
-    auto* const GetRadarTraceColour = reinterpret_cast<unsigned int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x4C3050).get());
-    auto* const VehicleGetAt = reinterpret_cast<CVehicle*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C70).get());
-    auto* const PedGetAt = reinterpret_cast<CPed*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451CB0).get());
-    auto* const ObjectGetAt = reinterpret_cast<CObject*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C30).get());
-    auto* const DrawRadarMap = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C17C0).get());
-    auto* const DrawRadarMask = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C1A20).get());
-    auto* const InitialiseRadar = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C6200).get());
+    auto* const FindPlayerVehicle = static_cast<CVehicle*(__cdecl*)()>(injector::memory_pointer(0x4BC1E0).get());
+    auto* const IsPlayerOnAMission = static_cast<bool(__cdecl*)()>(injector::memory_pointer(0x44FE30).get());
+    auto* const DoPathSearch = static_cast<void(__thiscall*)(void*, unsigned char, CVector, int, CVector, CPathNode**, short*, short, CVehicle*, float*, float, int)>(injector::memory_pointer(0x439070).get());
+    auto* const RwIm2DGetNearScreenZ = static_cast<float(__cdecl*)()>(injector::memory_pointer(0x649B80).get());
+    auto* const RwRenderStateSet = static_cast<void(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x649BA0).get());
+    auto* const RwD3D9SetRenderState = static_cast<int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x6582A0).get());
+    auto* const SetSpriteVertices = static_cast<void(__cdecl*)(float, float, float, float, float, float, float, float, unsigned int*, unsigned int*, unsigned int*, unsigned int*)>(injector::memory_pointer(0x5781C0).get());
+    auto* const RwIm2DRenderPrimitive = static_cast<void(__cdecl*)(unsigned int, RwD3D9Vertex*, unsigned int)>(injector::memory_pointer(0x649C10).get());
+    auto* const GetRadarTraceColour = static_cast<unsigned int(__cdecl*)(unsigned int, unsigned int)>(injector::memory_pointer(0x4C3050).get());
+    auto* const VehicleGetAt = static_cast<CVehicle*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C70).get());
+    auto* const PedGetAt = static_cast<CPed*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451CB0).get());
+    auto* const ObjectGetAt = static_cast<CObject*(__thiscall*)(void*, unsigned int)>(injector::memory_pointer(0x451C30).get());
+    auto* const DrawRadarMap = static_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C17C0).get());
+    auto* const DrawRadarMask = static_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C1A20).get());
+    auto* const InitialiseRadar = static_cast<void(__cdecl*)()>(injector::memory_pointer(0x4C6200).get());
 
     void* const gPathfind = injector::memory_pointer(0x9B6E5C).get();
     float* const gRadarMapZShift = static_cast<float*>(injector::memory_pointer(0x699530).get());
@@ -208,13 +208,13 @@ namespace {
     float* const gRadarRange = static_cast<float*>(injector::memory_pointer(0x974BEC).get());
     RadarBlip* const gRadarBlips = static_cast<RadarBlip*>(injector::memory_pointer(0x7D7D38).get());
 
-    auto* const AsciiToUnicode = reinterpret_cast<void(__cdecl*)(const char*, short*)>(injector::memory_pointer(0x552500).get());
-    auto* const PrintString = reinterpret_cast<void(__cdecl*)(float, float, short*)>(injector::memory_pointer(0x551040).get());
-    auto* const SetFontStyle = reinterpret_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FFE0).get());
-    auto* const SetScale = reinterpret_cast<void(__cdecl*)(float, float)>(injector::memory_pointer(0x550230).get());
-    auto* const SetColor = reinterpret_cast<void(__cdecl*)(unsigned int*)>(injector::memory_pointer(0x550170).get());
-    auto* const SetDropShadowPosition = reinterpret_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FF20).get());
-    auto* const SetPropOn = reinterpret_cast<void(__cdecl*)()>(injector::memory_pointer(0x550020).get());
+    auto* const AsciiToUnicode = static_cast<void(__cdecl*)(const char*, short*)>(injector::memory_pointer(0x552500).get());
+    auto* const PrintString = static_cast<void(__cdecl*)(float, float, short*)>(injector::memory_pointer(0x551040).get());
+    auto* const SetFontStyle = static_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FFE0).get());
+    auto* const SetScale = static_cast<void(__cdecl*)(float, float)>(injector::memory_pointer(0x550230).get());
+    auto* const SetColor = static_cast<void(__cdecl*)(unsigned int*)>(injector::memory_pointer(0x550170).get());
+    auto* const SetDropShadowPosition = static_cast<void(__cdecl*)(int)>(injector::memory_pointer(0x54FF20).get());
+    auto* const SetPropOn = static_cast<void(__cdecl*)()>(injector::memory_pointer(0x550020).get());
 
     void(__cdecl *pfDrawInMenu)(float x, float y, short *text) = nullptr;
 
