@@ -17,8 +17,11 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v3
 
+    - name: Run Premake5
+      run: .\premake5.exe vs2026
+
     - name: Build
-      run: msbuild VC.GPS.sln /p:Configuration=Release /p:Platform=x86 /m
+      run: msbuild VC.GPS.slnx /p:Configuration=Release /p:Platform=Win32 /m
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
