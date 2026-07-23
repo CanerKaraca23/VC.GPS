@@ -15,6 +15,7 @@ project "VC.GPS"
 
     multiprocessorcompile "On"
     warnings "Extra"
+    buildoptions { "/Zc:threadSafeInit-", "/Zc:strictStrings" }
 
     filter "configurations:Debug"
         defines { "_DEBUG" }
@@ -23,7 +24,7 @@ project "VC.GPS"
     filter "configurations:Release"
         defines { "NDEBUG" }
         optimize "Speed"
-        floatingpoint "Fast"
+        stringpooling "On"
         linktimeoptimization "On"
         vectorextensions "AVX2"
         largeaddressaware "On"
@@ -31,4 +32,4 @@ project "VC.GPS"
         exceptionhandling "Off"
         symbols "Off"
         omitframepointer "On"
-        buildoptions { "/Gw", "/Qpar", "/Zc:preprocessor" }
+        buildoptions { "/Gw", "/Zc:preprocessor" }
