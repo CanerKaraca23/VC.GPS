@@ -13,23 +13,62 @@ project "VC.GPS"
 
     files { "VC.GPS/**.cpp", "VC.GPS/**.hpp" }
 
+    staticruntime "On"
     multiprocessorcompile "On"
     warnings "Extra"
-    buildoptions { "/Zc:threadSafeInit-", "/Zc:strictStrings" }
+    conformancemode "On"
+    rtti "Off"
+    exceptionhandling "Off"
+    vectorextensions "SSE2"
+
+    defines {
+        "NOMINMAX",
+        "WIN32_LEAN_AND_MEAN",
+        "_USE_MATH_DEFINES"
+    }
+
+    buildoptions {
+        "/utf-8",
+        "/Zc:__cplusplus",
+        "/Zc:preprocessor",
+        "/Zc:strictStrings",
+        "/Zc:inline",
+        "/Zc:throwingNew",
+        "/Zc:lambda",
+        "/Zc:enumTypes",
+        "/Zc:templateScope",
+        "/Zc:ternary",
+        "/Zc:rvalueCast",
+        "/Zc:nrvo",
+        "/Zc:sizedDealloc",
+        "/Zc:checkGwOdr",
+        "/Zc:alignedNew",
+        "/volatile:iso",
+        "/Oi"
+    }
 
     filter "configurations:Debug"
         defines { "_DEBUG" }
         symbols "On"
+        optimize "Off"
 
     filter "configurations:Release"
         defines { "NDEBUG" }
         optimize "Speed"
         stringpooling "On"
+        functionlevellinking "On"
         linktimeoptimization "On"
-        vectorextensions "AVX2"
-        largeaddressaware "On"
-        rtti "Off"
-        exceptionhandling "Off"
         symbols "Off"
         omitframepointer "On"
-        buildoptions { "/Gw", "/Zc:preprocessor" }
+        
+        buildoptions { 
+            "/Gw", 
+            "/Ob3", 
+            "/Ot" 
+        }
+        
+        linkoptions { 
+            "/OPT:REF", 
+            "/OPT:ICF", 
+            "/INCREMENTAL:NO" 
+        }
